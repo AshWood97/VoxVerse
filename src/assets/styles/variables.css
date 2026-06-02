@@ -1,0 +1,99 @@
+:root {
+  /* Color palette - Dark theme (Default) */
+  --bg-primary: #0f0f14;
+  --bg-secondary: #181820;
+  --bg-tertiary: #1e1e2a;
+  --bg-elevated: #252535;
+  --bg-hover: #2a2a3d;
+  
+  /* Accent colors */
+  --accent-primary: #6c5ce7;
+  --accent-primary-hover: #7d6ff0;
+  --accent-secondary: #00cec9;
+  --accent-danger: #e74c3c;
+  --accent-gradient: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+  
+  /* Text colors */
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a0b8;
+  --text-tertiary: #6c6c88;
+  --text-on-accent: #ffffff;
+  
+  /* Chat bubble colors */
+  --bubble-user: #6c5ce7;
+  --bubble-user-text: #ffffff;
+  --bubble-ai: #252535;
+  --bubble-ai-text: #e8e8f0;
+  
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-visible: rgba(255, 255, 255, 0.12);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+  
+  /* Sidebar */
+  --sidebar-width: 280px;
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+  --bg-primary: #f5f6f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f0f2f5;
+  --bg-elevated: #ffffff;
+  --bg-hover: #e4e7ec;
+  
+  --accent-primary: #5f27cd;
+  --accent-primary-hover: #341f97;
+  --accent-gradient: linear-gradient(135deg, #5f27cd 0%, #8352db 100%);
+  
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --text-tertiary: #8f95a0;
+  --text-on-accent: #ffffff;
+  
+  --bubble-user: #5f27cd;
+  --bubble-user-text: #ffffff;
+  --bubble-ai: #ffffff;
+  --bubble-ai-text: #2d3436;
+  
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-visible: rgba(0, 0, 0, 0.1);
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
