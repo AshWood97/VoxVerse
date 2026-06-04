@@ -223,7 +223,7 @@ function autoResize(event: Event) {
 }
 
 .mic-notice {
-  color: #f59e0b;
+  color: var(--status-warning);
 }
 
 .input-container {
@@ -237,8 +237,8 @@ function autoResize(event: Event) {
 }
 
 .input-container.is-listening {
-  background: rgba(231, 76, 60, 0.05);
-  border-top-color: rgba(231, 76, 60, 0.2);
+  background: var(--status-danger-soft);
+  border-top-color: var(--status-danger-border);
 }
 
 .mic-btn {
@@ -270,7 +270,7 @@ function autoResize(event: Event) {
 .mic-btn--active {
   background: var(--accent-danger);
   border-color: var(--accent-danger);
-  color: white;
+  color: var(--text-on-accent);
 }
 
 .pulse-ring {

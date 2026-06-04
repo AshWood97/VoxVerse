@@ -3,6 +3,12 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { setLanguage } from '../../i18n';
 import type { AppLanguage } from '../../i18n';
+import {
+  THEME_PRESETS,
+  applyThemePreference,
+  normalizeThemePreference,
+} from '../../theme';
+import type { ThemePreferenceId } from '../../theme';
 import type {
   AiProvider,
   ApiConfig,
@@ -94,7 +100,7 @@ const {
 const ttsVoices = ref<VoiceInfo[]>([]);
 const selectedVoice = ref(localStorage.getItem('tts_voice') || 'en-US-AriaNeural');
 const voicesLoading = ref(false);
-const selectedTheme = ref(localStorage.getItem('theme') || 'dark');
+const selectedTheme = ref<ThemePreferenceId>(normalizeThemePreference(localStorage.getItem('theme')));
 const selectedLang = ref<AppLanguage>(locale.value as AppLanguage);
 const autoFeedbackEnabled = ref(localStorage.getItem('auto_feedback_enabled') !== 'false');
 
@@ -104,6 +110,21 @@ const requiresApiKey = computed(() => form.value.provider === 'openai');
 const baseUrlPlaceholder = computed(() => providerDefaults[form.value.provider].baseUrl || 'https://your-endpoint.example/v1');
 const modelPlaceholder = computed(() => providerDefaults[form.value.provider].model || 'your-model-name');
 const selectedVoiceInfo = computed(() => ttsVoices.value.find((voice) => voice.name === selectedVoice.value));
+const themeChoices = computed(() => [
+  {
+    id: 'system' as ThemePreferenceId,
+    name: t('settings.themeSystem'),
+    description: t('settings.themeSystemHint'),
+  },
+  ...THEME_PRESETS.map((preset) => ({
+    id: preset.id,
+    name: t(preset.nameKey),
+    description: t(preset.descriptionKey),
+  })),
+]);
+const selectedThemeDescription = computed(() => (
+  themeChoices.value.find((theme) => theme.id === selectedTheme.value)?.description || ''
+));
 const previewLocale = computed(() => selectedVoiceInfo.value?.locale || (selectedLang.value === 'zh' ? 'zh-CN' : 'en-US'));
 const previewText = computed(() => (
   previewLocale.value.startsWith('zh')
@@ -268,16 +289,6 @@ function hasDuplicateProfileName(name: string, excludeProfileId?: string) {
 
 function handleVoiceChange() {
   localStorage.setItem('tts_voice', selectedVoice.value);
-}
-
-function applyTheme(theme: string) {
-  if (theme === 'system') {
-    const isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
-    return;
-  }
-
-  document.documentElement.setAttribute('data-theme', theme);
 }
 
 function diagnosticBadgeClass(status: DiagnosticStatus) {
@@ -660,8 +671,8 @@ onMounted(async () => {
 });
 
 watch(selectedTheme, (newTheme) => {
-  localStorage.setItem('theme', newTheme);
-  applyTheme(newTheme);
+  const normalizedTheme = applyThemePreference(newTheme);
+  localStorage.setItem('theme', normalizedTheme);
 });
 
 watch(selectedLang, (newLang) => {
@@ -916,10 +927,15 @@ watch(
       <div class="field section-field section-field--spaced">
         <label class="field-label">{{ t('settings.theme') }}</label>
         <select v-model="selectedTheme" class="field-input">
-          <option value="dark">Dark Theme</option>
-          <option value="light">Light Theme</option>
-          <option value="system">System Default</option>
+          <option
+            v-for="theme in themeChoices"
+            :key="theme.id"
+            :value="theme.id"
+          >
+            {{ theme.name }}
+          </option>
         </select>
+        <p class="field-hint">{{ selectedThemeDescription }}</p>
       </div>
 
       <div class="modal-footer">
@@ -936,7 +952,7 @@ watch(
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -1044,7 +1060,7 @@ watch(
 }
 
 .field-warning {
-  color: #f59e0b;
+  color: var(--status-warning);
   font-size: var(--font-size-xs);
   margin-top: var(--space-xs);
 }
@@ -1126,18 +1142,18 @@ watch(
 }
 
 .diagnostic-badge--success {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: var(--status-success-soft);
+  color: var(--status-success);
 }
 
 .diagnostic-badge--warning {
-  background: rgba(245, 158, 11, 0.16);
-  color: #fbbf24;
+  background: var(--status-warning-soft);
+  color: var(--status-warning);
 }
 
 .diagnostic-badge--error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: var(--status-danger-soft);
+  color: var(--status-danger);
 }
 
 .diagnostic-summary {
@@ -1155,7 +1171,7 @@ watch(
 }
 
 .field-error {
-  color: #e74c3c;
+  color: var(--status-danger);
   font-size: var(--font-size-sm);
 }
 
@@ -1204,12 +1220,12 @@ watch(
 }
 
 .btn--danger {
-  color: #fca5a5;
+  color: var(--status-danger);
 }
 
 .btn--danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.14);
-  color: #fecaca;
+  background: var(--status-danger-soft);
+  color: var(--status-danger);
 }
 
 .btn--primary:hover:not(:disabled) {

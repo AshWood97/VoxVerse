@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.4.0 - 2026-06-04
+
+### Added
+
+- Added a full skin preset system with ten selectable UI skins from the skin reference plan.
+- Added shared theme normalization and application helpers for startup and Settings.
+- Added bilingual Settings labels and descriptions for System Default and all shipped skins.
+
+### Changed
+
+- Changed the default appearance from legacy dark mode to Graphite Minimal.
+- Changed legacy `dark` and `light` preferences to migrate to Graphite Minimal and Warm Paper.
+- Tokenized hard-coded accent, warning, success, danger, overlay, and progress colors across the main UI.
+
+### Compatibility
+
+- Existing `localStorage.theme` values remain supported: `dark`, `light`, and `system` all resolve safely.
+- No backend schema, app data, or API configuration changes are required.
+
+### Validation
+
+- `pnpm build`
+- `pnpm validate:lv4`
+
 ## v0.3.0 - 2026-06-04
 
 ### Added

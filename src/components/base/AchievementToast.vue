@@ -33,7 +33,7 @@ const { t } = useI18n();
   background: var(--bg-secondary);
   border: 2px solid var(--accent-secondary);
   border-radius: var(--radius-lg);
-  box-shadow: 0 0 20px rgba(0, 206, 201, 0.4), var(--shadow-lg);
+  box-shadow: 0 0 20px var(--accent-secondary-soft), var(--shadow-lg);
   padding: var(--space-sm) var(--space-md);
   display: flex;
   align-items: center;
@@ -46,7 +46,7 @@ const { t } = useI18n();
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, rgba(0,206,201,0.1) 0%, transparent 100%);
+  background: linear-gradient(135deg, var(--accent-secondary-soft) 0%, transparent 100%);
   z-index: 0;
   pointer-events: none;
 }

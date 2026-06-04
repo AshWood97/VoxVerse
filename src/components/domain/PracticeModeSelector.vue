@@ -44,7 +44,7 @@ const emit = defineEmits<{
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.62);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -133,7 +133,7 @@ const emit = defineEmits<{
 
 .mode-card--active {
   border-color: var(--accent-secondary);
-  background: rgba(0, 206, 201, 0.1);
+  background: var(--accent-secondary-soft);
 }
 
 .mode-name {
@@ -159,4 +159,3 @@ const emit = defineEmits<{
   to { opacity: 1; transform: scale(1); }
 }
 </style>
-

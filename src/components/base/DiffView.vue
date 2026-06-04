@@ -85,15 +85,15 @@ function computeDiff() {
 }
 
 .diff-removed {
-  color: #e74c3c;
+  color: var(--status-danger);
   text-decoration: line-through;
   opacity: 0.7;
 }
 
 .diff-added {
-  color: #2ecc71;
+  color: var(--status-success);
   font-weight: 600;
-  background: rgba(46, 204, 113, 0.1);
+  background: var(--status-success-soft);
   border-radius: 3px;
   padding: 0 2px;
 }

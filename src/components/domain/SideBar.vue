@@ -259,8 +259,9 @@ const { t } = useI18n();
 }
 
 .character-actions .delete-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: rgba(231, 76, 60, 0.3);
+  background: var(--status-danger-soft);
+  border-color: var(--status-danger-border);
+  color: var(--status-danger);
 }
 
 .add-char-btn {
@@ -281,7 +282,7 @@ const { t } = useI18n();
   color: var(--accent-secondary) !important;
 }
 .discover-btn:hover {
-  background: rgba(0, 206, 201, 0.1) !important;
+  background: var(--accent-secondary-soft) !important;
 }
 
 .avatar-img {

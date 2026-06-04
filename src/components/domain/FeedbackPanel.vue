@@ -294,7 +294,7 @@ function getActionTitle(action: FeedbackAction | null): string {
   font-size: var(--font-size-sm);
   color: var(--accent-secondary);
   padding: var(--space-sm) var(--space-md);
-  background: rgba(0, 206, 201, 0.08);
+  background: var(--accent-secondary-soft);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--accent-secondary);
   line-height: 1.6;
@@ -302,9 +302,9 @@ function getActionTitle(action: FeedbackAction | null): string {
 
 .fp-success {
   padding: var(--space-md);
-  background: rgba(46, 204, 113, 0.1);
+  background: var(--status-success-soft);
   border-radius: var(--radius-md);
-  color: #2ecc71;
+  color: var(--status-success);
   font-size: var(--font-size-sm);
   font-weight: 500;
   text-align: center;
@@ -351,7 +351,7 @@ function getActionTitle(action: FeedbackAction | null): string {
   align-items: center;
 }
 .fp-change-before {
-  color: #e74c3c;
+  color: var(--status-danger);
   text-decoration: line-through;
   opacity: 0.7;
 }
@@ -360,7 +360,7 @@ function getActionTitle(action: FeedbackAction | null): string {
   text-align: center;
 }
 .fp-change-after {
-  color: #2ecc71;
+  color: var(--status-success);
   font-weight: 500;
 }
 .fp-change-reason {
@@ -460,7 +460,7 @@ function getActionTitle(action: FeedbackAction | null): string {
 
 .fp-error {
   padding: var(--space-lg);
-  color: #e74c3c;
+  color: var(--status-danger);
   font-size: var(--font-size-sm);
 }
 

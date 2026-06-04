@@ -1,6 +1,6 @@
 [package]
 name = "voxverse"
-version = "0.3.0"
+version = "0.4.0"
 description = "VoxVerse - Voice-first character universe for immersive roleplay and learning"
 authors = ["you"]
 edition = "2021"

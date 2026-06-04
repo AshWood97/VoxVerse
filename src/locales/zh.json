@@ -93,7 +93,51 @@
       "error": "阻塞"
     },
     "language": "应用语言",
-    "theme": "外观主题",
+    "theme": "皮肤外观",
+    "themeSystem": "跟随系统",
+    "themeSystemHint": "浅色系统使用 Warm Paper，深色系统使用 Graphite Minimal。",
+    "themes": {
+      "graphiteMinimal": {
+        "name": "Graphite Minimal",
+        "description": "黑白灰、紧凑、工作感强，是 VoxVerse 默认主皮肤。"
+      },
+      "warmPaper": {
+        "name": "Warm Paper",
+        "description": "象牙纸、暖灰和陶土色，适合低压力聊天阅读。"
+      },
+      "auroraGlass": {
+        "name": "Aurora Glass",
+        "description": "深色玻璃质感和克制极光色，适合 AI 状态与反馈。"
+      },
+      "codeConsole": {
+        "name": "Code Console",
+        "description": "石墨控制台表面，青色和绿色状态强调，适合工具与诊断。"
+      },
+      "darkSignal": {
+        "name": "Dark Signal",
+        "description": "高对比黑色界面，带冷色时间线/通知信号感。"
+      },
+      "liquidFrost": {
+        "name": "Liquid Frost",
+        "description": "浅色毛玻璃、柔和阴影和更松弛的圆角，适合弹窗密集流程。"
+      },
+      "enterpriseCarbon": {
+        "name": "Enterprise Carbon",
+        "description": "偏数据系统的密集风格，使用 Carbon 灰阶和 IBM 蓝。"
+      },
+      "primerDev": {
+        "name": "Primer Dev",
+        "description": "GitHub 风格深色表面、徽章和开发工具对比度。"
+      },
+      "creativeSpectrum": {
+        "name": "Creative Spectrum",
+        "description": "专业创作工具灰阶，配合蓝色和橙色控制强调。"
+      },
+      "luxuryConsole": {
+        "name": "Luxury Console",
+        "description": "黑色、深绿和克制香槟金，用于展示感更强的界面。"
+      }
+    },
     "saving": "保存中...",
     "save": "保存",
     "cancel": "取消",

@@ -214,7 +214,7 @@ function formatDate(isoString: string) {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 15, 0.75);
+  background: var(--overlay-bg);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -233,7 +233,7 @@ function formatDate(isoString: string) {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -244,7 +244,7 @@ function formatDate(isoString: string) {
   justify-content: space-between;
   padding: var(--space-lg) var(--space-xl);
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-glass);
 }
 .header-title h2 {
   font-size: var(--font-size-lg);
@@ -285,7 +285,7 @@ function formatDate(isoString: string) {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--surface-glass);
   overflow-y: auto;
 }
 
@@ -344,7 +344,7 @@ function formatDate(isoString: string) {
 }
 .filter-item--active .filter-count {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .add-fact-section {
@@ -389,7 +389,7 @@ function formatDate(isoString: string) {
 }
 .submit-btn {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--text-on-accent);
   border: none;
   border-radius: var(--radius-md);
   padding: var(--space-sm) var(--space-md);
@@ -493,14 +493,14 @@ function formatDate(isoString: string) {
   color: var(--text-primary);
 }
 .toggle-visibility-btn.visible {
-  background: rgba(46, 204, 113, 0.1);
-  border-color: rgba(46, 204, 113, 0.3);
-  color: #2ecc71;
+  background: var(--status-success-soft);
+  border-color: var(--status-success-border);
+  color: var(--status-success);
 }
 .toggle-visibility-btn:not(.visible) {
-  background: rgba(243, 156, 18, 0.1);
-  border-color: rgba(243, 156, 18, 0.3);
-  color: #f39c12;
+  background: var(--status-warning-soft);
+  border-color: var(--status-warning-border);
+  color: var(--status-warning);
 }
 .fact-actions .delete-btn {
   padding: 6px;
@@ -511,9 +511,9 @@ function formatDate(isoString: string) {
   justify-content: center;
 }
 .fact-actions .delete-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
+  background: var(--status-danger-soft);
+  border-color: var(--status-danger-border);
+  color: var(--status-danger);
 }
 
 .state-container {

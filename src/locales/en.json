@@ -93,7 +93,51 @@
       "error": "Blocked"
     },
     "language": "App Language",
-    "theme": "Theme Appearance",
+    "theme": "Skin Appearance",
+    "themeSystem": "System Default",
+    "themeSystemHint": "Uses Warm Paper on light systems and Graphite Minimal on dark systems.",
+    "themes": {
+      "graphiteMinimal": {
+        "name": "Graphite Minimal",
+        "description": "Neutral, compact, and work-focused. This is the default main VoxVerse skin."
+      },
+      "warmPaper": {
+        "name": "Warm Paper",
+        "description": "Ivory paper, warm gray, and terracotta tones for low-stress chat reading."
+      },
+      "auroraGlass": {
+        "name": "Aurora Glass",
+        "description": "Soft dark glass with controlled aurora color for AI status and feedback moments."
+      },
+      "codeConsole": {
+        "name": "Code Console",
+        "description": "Graphite console surfaces with cyan and green status accents for tools and diagnostics."
+      },
+      "darkSignal": {
+        "name": "Dark Signal",
+        "description": "High-contrast black UI with cool timeline-style signal accents."
+      },
+      "liquidFrost": {
+        "name": "Liquid Frost",
+        "description": "Light frosted surfaces, soft shadows, and relaxed radius for modal-heavy workflows."
+      },
+      "enterpriseCarbon": {
+        "name": "Enterprise Carbon",
+        "description": "Dense data-system styling with Carbon-like grays and IBM blue."
+      },
+      "primerDev": {
+        "name": "Primer Dev",
+        "description": "GitHub-inspired dark surfaces, badges, and developer-tool contrast."
+      },
+      "creativeSpectrum": {
+        "name": "Creative Spectrum",
+        "description": "Professional creative-tool neutrals with blue and orange control accents."
+      },
+      "luxuryConsole": {
+        "name": "Luxury Console",
+        "description": "Black, deep green, and restrained champagne-gold accents for showcase views."
+      }
+    },
     "saving": "Saving...",
     "save": "Save",
     "cancel": "Cancel",

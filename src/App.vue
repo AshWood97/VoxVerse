@@ -544,10 +544,12 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
 .top-action-bar {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   padding: var(--space-sm) var(--space-lg);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .top-btn {
@@ -560,6 +562,7 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 .top-btn:hover {
   background: var(--bg-hover);
@@ -567,22 +570,22 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
 }
 .top-btn.accent {
   color: var(--accent-primary);
-  border-color: rgba(108, 92, 231, 0.3);
-  background: rgba(108, 92, 231, 0.05);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
 }
 .top-btn.accent:hover {
-  background: rgba(108, 92, 231, 0.1);
+  background: var(--accent-soft);
   border-color: var(--accent-primary);
 }
 
 .top-btn--mode {
   color: var(--accent-secondary);
-  border-color: rgba(0, 206, 201, 0.28);
-  background: rgba(0, 206, 201, 0.06);
+  border-color: var(--accent-secondary-border);
+  background: var(--accent-secondary-soft);
 }
 
 .top-btn--mode:hover {
-  background: rgba(0, 206, 201, 0.12);
+  background: var(--accent-secondary-soft);
   border-color: var(--accent-secondary);
 }
 
@@ -600,7 +603,7 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
 .modal-overlay-wrapper {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 15, 0.75);
+  background: var(--overlay-bg);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -615,7 +618,7 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
   max-height: 85vh;
   overflow-y: auto;
   border-radius: var(--radius-lg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 @keyframes fadeIn {

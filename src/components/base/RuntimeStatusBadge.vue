@@ -44,18 +44,18 @@ withDefaults(defineProps<{
 .runtime-badge--pill {
   min-height: 28px;
   padding: 0 var(--space-sm);
-  border: 1px solid rgba(0, 206, 201, 0.2);
+  border: 1px solid var(--accent-secondary-border);
   border-radius: var(--radius-full);
-  background: rgba(0, 206, 201, 0.08);
+  background: var(--accent-secondary-soft);
 }
 
 .runtime-badge--fallback {
-  color: #f59e0b;
+  color: var(--status-warning);
 }
 
 .runtime-badge--pill.runtime-badge--fallback {
-  border-color: rgba(245, 158, 11, 0.25);
-  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--status-warning-border);
+  background: var(--status-warning-soft);
 }
 
 .runtime-badge--error {
@@ -63,8 +63,8 @@ withDefaults(defineProps<{
 }
 
 .runtime-badge--pill.runtime-badge--error {
-  border-color: rgba(231, 76, 60, 0.25);
-  background: rgba(231, 76, 60, 0.1);
+  border-color: var(--status-danger-border);
+  background: var(--status-danger-soft);
 }
 
 .runtime-badge-dot {

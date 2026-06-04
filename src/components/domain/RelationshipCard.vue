@@ -265,7 +265,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
   align-items: center;
   padding: var(--space-md) var(--space-lg);
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--surface-glass);
 }
 .card-header h3 {
   font-size: var(--font-size-sm);
@@ -324,10 +324,10 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .intimacy-bar {
-  background: linear-gradient(90deg, #fd79a8, #e84393);
+  background: var(--progress-intimacy);
 }
 .trust-bar {
-  background: linear-gradient(90deg, #74b9ff, #0984e3);
+  background: var(--progress-trust);
 }
 
 .stat-controls {
@@ -411,16 +411,16 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
   animation: tagAppear 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .preference-tag {
-  background: rgba(253, 121, 168, 0.08);
-  border-color: rgba(253, 121, 168, 0.2);
+  background: var(--relationship-preference-soft);
+  border-color: var(--relationship-preference-border);
 }
 .commitment-tag {
-  background: rgba(116, 185, 255, 0.08);
-  border-color: rgba(116, 185, 255, 0.2);
+  background: var(--relationship-commitment-soft);
+  border-color: var(--relationship-commitment-border);
 }
 .boundary-tag {
-  background: rgba(231, 76, 60, 0.08);
-  border-color: rgba(231, 76, 60, 0.2);
+  background: var(--relationship-boundary-soft);
+  border-color: var(--relationship-boundary-border);
 }
 
 .tag-del-btn {
@@ -430,7 +430,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
   line-height: 1;
 }
 .tag-del-btn:hover {
-  color: #e74c3c;
+  color: var(--status-danger);
 }
 
 .input-row {
@@ -466,7 +466,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
 }
 .inline-add-btn:hover {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--text-on-accent);
   border-color: var(--accent-primary);
 }
 

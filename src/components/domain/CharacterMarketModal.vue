@@ -138,7 +138,7 @@ function handleOverlayClick(e: MouseEvent) {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: var(--overlay-bg);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -325,7 +325,7 @@ function handleOverlayClick(e: MouseEvent) {
 .download-btn {
   background: var(--bg-primary);
   color: var(--accent-primary);
-  border: 1px solid rgba(108, 92, 231, 0.3);
+  border: 1px solid var(--accent-border);
   padding: 6px 14px;
   border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
@@ -334,7 +334,7 @@ function handleOverlayClick(e: MouseEvent) {
 }
 
 .download-btn:not(:disabled):hover {
-  background: rgba(108, 92, 231, 0.1);
+  background: var(--accent-soft);
   border-color: var(--accent-primary);
 }
 

@@ -229,7 +229,7 @@ function overlayClick(e: MouseEvent) {
 .stats-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: var(--overlay-bg);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -308,7 +308,7 @@ function overlayClick(e: MouseEvent) {
   animation: spin 0.6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.stats-error { color: #e74c3c; }
+.stats-error { color: var(--status-danger); }
 
 /* ── Body ── */
 .stats-body {
@@ -330,8 +330,8 @@ function overlayClick(e: MouseEvent) {
   transition: all var(--transition-fast);
 }
 .streak-banner.active {
-  background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(253, 172, 65, 0.1));
-  border-color: rgba(253, 172, 65, 0.4);
+  background: var(--progress-warm);
+  border-color: var(--progress-warm-border);
 }
 .streak-num {
   font-size: 2.5rem;
@@ -431,15 +431,15 @@ function overlayClick(e: MouseEvent) {
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  background: rgba(108, 92, 231, 0.1);
-  border: 1px solid rgba(108, 92, 231, 0.25);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
   border-radius: 999px;
   color: var(--accent-primary);
   font-weight: 500;
   transition: all var(--transition-fast);
 }
 .correction-tag:hover {
-  background: rgba(108, 92, 231, 0.2);
+  background: var(--accent-soft);
 }
 .correction-tag em {
   font-style: normal;
@@ -488,7 +488,7 @@ function overlayClick(e: MouseEvent) {
   min-width: 28px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  background: rgba(0, 206, 201, 0.12);
+  background: var(--accent-secondary-soft);
   color: var(--accent-secondary);
   text-align: center;
   font-size: var(--font-size-xs);
@@ -506,14 +506,14 @@ function overlayClick(e: MouseEvent) {
 }
 
 .recent-before {
-  color: #e74c3c;
+  color: var(--status-danger);
   font-size: var(--font-size-sm);
   text-decoration: line-through;
   opacity: 0.8;
 }
 
 .recent-after {
-  color: #2ecc71;
+  color: var(--status-success);
   font-size: var(--font-size-sm);
   font-weight: 600;
 }

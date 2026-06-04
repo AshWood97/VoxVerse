@@ -273,12 +273,12 @@ watch(
 }
 
 .stop-btn {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: rgba(231, 76, 60, 0.3);
+  background: var(--status-danger-soft);
+  border-color: var(--status-danger-border);
 }
 
 .stop-btn:hover {
-  background: rgba(231, 76, 60, 0.2);
+  background: var(--status-danger-soft);
 }
 
 .chat-messages {
@@ -315,25 +315,25 @@ watch(
   justify-content: space-between;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: rgba(231, 76, 60, 0.15);
-  color: #e74c3c;
+  background: var(--status-danger-soft);
+  color: var(--status-danger);
   font-size: var(--font-size-sm);
-  border-top: 1px solid rgba(231, 76, 60, 0.3);
+  border-top: 1px solid var(--status-danger-border);
 }
 
 .chat-error-retry {
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  background: rgba(231, 76, 60, 0.16);
-  border: 1px solid rgba(231, 76, 60, 0.32);
-  color: #fecaca;
+  background: var(--status-danger-soft);
+  border: 1px solid var(--status-danger-border);
+  color: var(--status-danger);
   font-size: var(--font-size-xs);
   font-weight: 700;
   white-space: nowrap;
 }
 
 .chat-error-retry:hover {
-  background: rgba(231, 76, 60, 0.26);
+  background: var(--status-danger-soft);
 }
 
 .chat-error--speech {
@@ -342,9 +342,9 @@ watch(
 
 .chat-notice {
   padding: var(--space-sm) var(--space-md);
-  background: rgba(245, 158, 11, 0.14);
-  color: #f59e0b;
+  background: var(--status-warning-soft);
+  color: var(--status-warning);
   font-size: var(--font-size-sm);
-  border-top: 1px solid rgba(245, 158, 11, 0.24);
+  border-top: 1px solid var(--status-warning-border);
 }
 </style>

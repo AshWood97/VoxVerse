@@ -121,7 +121,7 @@ function scenarioName(id: string | null | undefined): string {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -202,7 +202,7 @@ function scenarioName(id: string | null | undefined): string {
 }
 .history-item--active {
   border-color: var(--accent-primary);
-  background: rgba(108, 92, 231, 0.05);
+  background: var(--accent-soft);
 }
 
 .history-main {
@@ -231,7 +231,7 @@ function scenarioName(id: string | null | undefined): string {
   border: none;
   font-size: 1.1rem;
   opacity: 0.3;
-  color: #e74c3c;
+  color: var(--status-danger);
   cursor: pointer;
   transition: opacity var(--transition-fast);
   padding: var(--space-xs);
