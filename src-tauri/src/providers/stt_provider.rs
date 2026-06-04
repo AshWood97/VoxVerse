@@ -69,10 +69,14 @@ impl SttProvider for WhisperSttProvider {
         crate::services::stt::validate_audio_payload(&audio.data, &audio.mime_type)
             .map_err(ProviderError::InvalidInput)?;
 
-        let text =
-            crate::services::stt::transcribe_audio(&self.base_url, &self.api_key, audio.data, &audio.mime_type)
-                .await
-                .map_err(ProviderError::Network)?;
+        let text = crate::services::stt::transcribe_audio(
+            &self.base_url,
+            &self.api_key,
+            audio.data,
+            &audio.mime_type,
+        )
+        .await
+        .map_err(ProviderError::Network)?;
 
         Ok(TranscriptResult {
             text,

@@ -1,5 +1,6 @@
 use crate::error::AppError;
 use rusqlite::{params, Connection};
+use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 use tauri::AppHandle;
 use tauri::Manager;
@@ -30,10 +31,13 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
 
     let db_path = app_dir.join("voxverse.db");
 
-    // Auto-migrate from legacy speakmate.db if voxverse.db doesn't exist yet
+    // Auto-migrate from older VoxVerse/SpeakMate locations if the new DB doesn't exist yet.
     if !db_path.exists() {
-        let legacy_db_path = app_dir.join("speakmate.db");
-        if legacy_db_path.exists() {
+        for legacy_db_path in legacy_database_candidates(&app_dir) {
+            if !legacy_db_path.exists() {
+                continue;
+            }
+
             if let Err(e) = std::fs::copy(&legacy_db_path, &db_path) {
                 log::warn!(
                     "Failed to migrate legacy database from '{}' to '{}': {}",
@@ -41,6 +45,13 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
                     db_path.display(),
                     e
                 );
+            } else {
+                log::info!(
+                    "Migrated legacy database from '{}' to '{}'.",
+                    legacy_db_path.display(),
+                    db_path.display()
+                );
+                break;
             }
         }
     }
@@ -255,6 +266,32 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
     Ok(())
 }
 
+fn legacy_database_candidates(app_dir: &Path) -> Vec<PathBuf> {
+    let mut candidates = vec![app_dir.join("speakmate.db")];
+
+    if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA").map(PathBuf::from) {
+        candidates.push(local_app_data.join("com.voxverse.app").join("voxverse.db"));
+        candidates.push(
+            local_app_data
+                .join("com.ai-speaking.desktop")
+                .join("voxverse.db"),
+        );
+        candidates.push(
+            local_app_data
+                .join("com.ai-speaking.desktop")
+                .join("speakmate.db"),
+        );
+        candidates.push(
+            local_app_data
+                .join("com.ai-speaking.app")
+                .join("speakmate.db"),
+        );
+        candidates.push(local_app_data.join("SpeakMate").join("speakmate.db"));
+    }
+
+    candidates
+}
+
 fn ensure_column(
     conn: &Connection,
     table_name: &str,
@@ -309,6 +346,12 @@ fn seed_preset_practice_modes(conn: &Connection) -> Result<(), AppError> {
             "IELTS Speaking",
             "IELTS-style spoken answer practice with coaching.",
             "Act as an IELTS speaking examiner. Ask concise Part 1, Part 2, or Part 3 style prompts, then give practical feedback on fluency, vocabulary, grammar, and coherence.",
+        ),
+        (
+            "interview_practice",
+            "Interview Practice",
+            "Professional interview rehearsal with follow-up questions and expression coaching.",
+            "Act as a professional interviewer. Ask focused behavioral and experience-based questions, follow up naturally, and coach the learner toward concise, confident answers.",
         ),
     ];
 
@@ -424,7 +467,7 @@ mod tests {
 
         let count: i64 =
             conn.query_row("SELECT COUNT(*) FROM practice_modes", [], |row| row.get(0))?;
-        assert_eq!(count, 4);
+        assert_eq!(count, 5);
 
         let has_ielts: bool = conn.query_row(
             "SELECT EXISTS(SELECT 1 FROM practice_modes WHERE id = 'ielts_speaking')",
@@ -432,6 +475,13 @@ mod tests {
             |row| row.get(0),
         )?;
         assert!(has_ielts);
+
+        let has_interview: bool = conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM practice_modes WHERE id = 'interview_practice')",
+            [],
+            |row| row.get(0),
+        )?;
+        assert!(has_interview);
 
         Ok(())
     }

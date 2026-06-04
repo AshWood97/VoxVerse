@@ -87,8 +87,9 @@ pub async fn create_memory_fact(
         ));
     }
 
-    let fact = memory_service::create_memory_fact(&db, &character_id, None, &fact_type, content, None)
-        .map_err(|e| e.to_string())?;
+    let fact =
+        memory_service::create_memory_fact(&db, &character_id, None, &fact_type, content, None)
+            .map_err(|e| e.to_string())?;
 
     Ok(MemoryFactInfo {
         id: fact.id,
@@ -105,10 +106,7 @@ pub async fn create_memory_fact(
 
 /// Soft-delete a memory fact.
 #[tauri::command]
-pub async fn delete_memory_fact(
-    db: State<'_, DbState>,
-    fact_id: String,
-) -> Result<bool, String> {
+pub async fn delete_memory_fact(db: State<'_, DbState>, fact_id: String) -> Result<bool, String> {
     memory::soft_delete_memory_fact(&db, &fact_id).map_err(|e| e.to_string())
 }
 

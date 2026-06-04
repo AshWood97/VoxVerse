@@ -12,6 +12,7 @@ import type {
   RuntimeDiagnostics,
 } from '../../types/api';
 import {
+  clearActiveApiKey,
   createConfigProfile,
   deleteConfigProfile,
   getConfig,
@@ -71,6 +72,7 @@ const activeProfileId = ref('default');
 const profilesLoading = ref(false);
 const profileError = ref('');
 const hasExistingKey = ref(false);
+const clearingKey = ref(false);
 const saving = ref(false);
 const saveSuccess = ref(false);
 const saveError = ref('');
@@ -132,6 +134,7 @@ const canDeleteProfile = computed(() => (
   && !profilesLoading.value
   && !saving.value
 ));
+const canClearApiKey = computed(() => hasExistingKey.value && !saving.value && !profilesLoading.value && !clearingKey.value);
 const canRunDiagnostics = computed(() => !saving.value && !diagnosticsLoading.value && !isConfigDirty.value);
 const canCopyDiagnostics = computed(() => Boolean(diagnostics.value) && !diagnosticsLoading.value);
 const canPreviewVoice = computed(() => !voicesLoading.value && Boolean(selectedVoice.value));
@@ -286,7 +289,7 @@ function diagnosticBadgeLabel(status: DiagnosticStatus) {
 
 function buildDiagnosticsReport() {
   const lines = [
-    '# SpeakMate Lv.4 Runtime Diagnostics',
+    '# VoxVerse Runtime Diagnostics',
     '',
     `Generated: ${new Date().toISOString()}`,
     `Profile: ${savedConfig.value.profileName} (${savedConfig.value.profileId})`,
@@ -309,6 +312,35 @@ function buildDiagnosticsReport() {
   }
 
   return lines.join('\n');
+}
+
+async function handleClearApiKey() {
+  if (!hasExistingKey.value) {
+    return;
+  }
+
+  if (!window.confirm(t('settings.apiKeyClearConfirm'))) {
+    return;
+  }
+
+  clearingKey.value = true;
+  saveError.value = '';
+  saveSuccess.value = false;
+
+  try {
+    const config = await clearActiveApiKey();
+    applyConfigInfo(config);
+    await loadProfiles();
+    saveSuccess.value = true;
+
+    setTimeout(() => {
+      saveSuccess.value = false;
+    }, 800);
+  } catch (errorCause) {
+    saveError.value = toErrorMessage(errorCause, 'Failed to clear saved API key.');
+  } finally {
+    clearingKey.value = false;
+  }
 }
 
 async function copyTextToClipboard(text: string) {
@@ -730,6 +762,16 @@ watch(
             type="password"
             :placeholder="apiKeyPlaceholder"
           />
+          <div class="field-actions">
+            <button
+              class="btn btn--ghost btn--small"
+              type="button"
+              :disabled="!canClearApiKey"
+              @click="handleClearApiKey"
+            >
+              {{ clearingKey ? t('settings.apiKeyClearing') : t('settings.apiKeyClear') }}
+            </button>
+          </div>
           <p class="field-hint">{{ apiKeyHint }}</p>
         </div>
 

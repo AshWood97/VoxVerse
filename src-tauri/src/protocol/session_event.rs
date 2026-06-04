@@ -59,10 +59,7 @@ pub enum SessionEvent {
 
     /// Emitted when the client begins or continues audio input.
     #[serde(rename = "audio.input")]
-    AudioInput {
-        session_id: String,
-        is_active: bool,
-    },
+    AudioInput { session_id: String, is_active: bool },
 
     /// Emitted for partial (in-progress) STT transcripts.
     #[serde(rename = "transcript.partial")]

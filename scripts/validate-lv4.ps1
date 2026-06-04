@@ -126,7 +126,7 @@ function Test-AgentStdioSmoke {
       '{"id":"status","tool":"get_app_status","arguments":{}}'
       '{"id":"stop","method":"shutdown"}'
     )
-    $output = $inputLines | cargo run --quiet --bin speakmate -- agent serve --stdio --read-only 2>&1 | Out-String
+    $output = $inputLines | cargo run --quiet --bin voxverse-cli -- agent serve --stdio --read-only 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
     $escape = [char]27
     $output = $output -replace "$escape\[[0-9;]*m", ""
@@ -156,7 +156,7 @@ function Test-McpStdioSmoke {
       '{"jsonrpc":"2.0","id":"status","method":"tools/call","params":{"name":"get_app_status","arguments":{}}}'
       '{"jsonrpc":"2.0","id":"stop","method":"shutdown"}'
     )
-    $output = $inputLines | cargo run --quiet --bin speakmate -- agent serve --stdio --read-only 2>&1 | Out-String
+    $output = $inputLines | cargo run --quiet --bin voxverse-cli -- agent serve --stdio --read-only 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
     $escape = [char]27
     $output = $output -replace "$escape\[[0-9;]*m", ""
@@ -204,7 +204,7 @@ function Test-AgentWriteSmoke {
     try {
       $characterId = $null
       $global:LASTEXITCODE = 0
-      $characterOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" character list --json 2>&1 | Out-String
+      $characterOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" character list --json 2>&1 | Out-String
       if ($LASTEXITCODE -eq 0) {
         try {
           $characterReport = $characterOutput | ConvertFrom-Json
@@ -220,7 +220,7 @@ function Test-AgentWriteSmoke {
       $sessionId = $null
       if (-not [string]::IsNullOrWhiteSpace($characterId)) {
         $global:LASTEXITCODE = 0
-        $sessionOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session start --character "$characterId" --title "Lv4 append smoke" --json --yes 2>&1 | Out-String
+        $sessionOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session start --character "$characterId" --title "Lv4 append smoke" --json --yes 2>&1 | Out-String
         if ($LASTEXITCODE -eq 0) {
           try {
             $sessionReport = $sessionOutput | ConvertFrom-Json
@@ -266,7 +266,7 @@ function Test-AgentWriteSmoke {
         '{"jsonrpc":"2.0","id":"switch","method":"tools/call","params":{"name":"switch_provider_profile","arguments":{"profile_id":"default"}}}'
         '{"jsonrpc":"2.0","id":"stop","method":"shutdown"}'
       )
-      $readOnlyOutput = $readOnlyLines | cargo run --quiet --bin speakmate -- --db "$tmpDb" agent serve --stdio --read-only 2>&1 | Out-String
+      $readOnlyOutput = $readOnlyLines | cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent serve --stdio --read-only 2>&1 | Out-String
       $readOnlyExit = $LASTEXITCODE
 
       $global:LASTEXITCODE = 0
@@ -307,7 +307,7 @@ function Test-AgentWriteSmoke {
         '{"jsonrpc":"2.0","id":"audit","method":"tools/call","params":{"name":"list_audit_events","arguments":{"limit":5}}}'
         '{"jsonrpc":"2.0","id":"stop","method":"shutdown"}'
       )
-      $writeOutput = $writeLines | cargo run --quiet --bin speakmate -- --db "$tmpDb" agent serve --stdio --allow-writes --yes 2>&1 | Out-String
+      $writeOutput = $writeLines | cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent serve --stdio --allow-writes --yes 2>&1 | Out-String
       $writeExit = $LASTEXITCODE
 
       $global:LASTEXITCODE = 0
@@ -316,7 +316,7 @@ function Test-AgentWriteSmoke {
         '{"id":"switch","tool":"switch_provider_profile","arguments":{"profile_id":"default"}}'
         '{"id":"stop","method":"shutdown"}'
       )
-      $filteredOutput = $filteredLines | cargo run --quiet --bin speakmate -- --db "$tmpDb" agent serve --stdio --allow-writes --yes --allow-tool append_session_message 2>&1 | Out-String
+      $filteredOutput = $filteredLines | cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent serve --stdio --allow-writes --yes --allow-tool append_session_message 2>&1 | Out-String
       $filteredExit = $LASTEXITCODE
 
       $global:LASTEXITCODE = 0
@@ -324,11 +324,11 @@ function Test-AgentWriteSmoke {
         '{"id":"send","tool":"send_message","arguments":{"session_id":"blocked-smoke","content":"This must not call the network."}}'
         '{"id":"stop","method":"shutdown"}'
       )
-      $networkBlockedOutput = $networkBlockedLines | cargo run --quiet --bin speakmate -- --db "$tmpDb" agent serve --stdio --allow-writes --yes --allow-tool send_message 2>&1 | Out-String
+      $networkBlockedOutput = $networkBlockedLines | cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent serve --stdio --allow-writes --yes --allow-tool send_message 2>&1 | Out-String
       $networkBlockedExit = $LASTEXITCODE
 
       $global:LASTEXITCODE = 0
-      $networkToolsOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" agent tools list --json --allow-writes --allow-network --allow-tool send_message 2>&1 | Out-String
+      $networkToolsOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent tools list --json --allow-writes --allow-network --allow-tool send_message 2>&1 | Out-String
       $networkToolsExit = $LASTEXITCODE
 
       $escape = [char]27
@@ -359,8 +359,8 @@ function Test-AgentWriteSmoke {
       $networkBoundaryOk = $networkBlockedExit -eq 0 `
         -and $networkBlockedOutput -match 'send_message requires agent serve --allow-network' `
         -and $networkToolsExit -eq 0 `
-        -and $networkToolsOutput -match '"network_enabled": true' `
-        -and $networkToolsOutput -match '"write_allowlist": \[' `
+        -and $networkToolsOutput -match '"network_enabled"\s*:\s*true' `
+        -and $networkToolsOutput -match '"write_allowlist"\s*:\s*\[' `
         -and $networkToolsOutput -match '"send_message"'
 
       if (
@@ -486,7 +486,7 @@ function Test-SendMessageMockSmoke {
     Push-Location (Join-Path $root "src-tauri")
     try {
       $global:LASTEXITCODE = 0
-      $characterOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" character list --json 2>&1 | Out-String
+      $characterOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" character list --json 2>&1 | Out-String
       if ($LASTEXITCODE -ne 0) {
         Add-Check "speakmate send-message mock" "fail" (($characterOutput.Trim() -split "`r?`n" | Select-Object -Last 8) -join "`n")
         return
@@ -500,7 +500,7 @@ function Test-SendMessageMockSmoke {
       }
       $characterId = [string]$characters[0].id
 
-      $sessionOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session start --character "$characterId" --title "Lv4 send-message smoke" --json --yes 2>&1 | Out-String
+      $sessionOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session start --character "$characterId" --title "Lv4 send-message smoke" --json --yes 2>&1 | Out-String
       if ($LASTEXITCODE -ne 0) {
         Add-Check "speakmate send-message mock" "fail" (($sessionOutput.Trim() -split "`r?`n" | Select-Object -Last 8) -join "`n")
         return
@@ -518,43 +518,43 @@ function Test-SendMessageMockSmoke {
       $env:SPEAKMATE_CLI_SEND_API_KEY = ""
 
       $global:LASTEXITCODE = 0
-      $sendOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session send-message --session "$sessionId" --content "Hello from the Lv4 mock send-message smoke." --json --yes --allow-network 2>&1 | Out-String
+      $sendOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session send-message --session "$sessionId" --content "Hello from the Lv4 mock send-message smoke." --json --yes --allow-network 2>&1 | Out-String
       $sendExit = $LASTEXITCODE
 
-      $appendRetryOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session append-message --session "$sessionId" --role user --content "Please retry the last user message from the Lv4 smoke." --json --yes 2>&1 | Out-String
+      $appendRetryOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session append-message --session "$sessionId" --role user --content "Please retry the last user message from the Lv4 smoke." --json --yes 2>&1 | Out-String
       $appendRetryExit = $LASTEXITCODE
-      $retryOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session retry-last --session "$sessionId" --json --yes --allow-network 2>&1 | Out-String
+      $retryOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session retry-last --session "$sessionId" --json --yes --allow-network 2>&1 | Out-String
       $retryExit = $LASTEXITCODE
 
-      $appendAgentRetryOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session append-message --session "$sessionId" --role user --content "Please retry the last user message through the Lv4 agent smoke." --json --yes 2>&1 | Out-String
+      $appendAgentRetryOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session append-message --session "$sessionId" --role user --content "Please retry the last user message through the Lv4 agent smoke." --json --yes 2>&1 | Out-String
       $appendAgentRetryExit = $LASTEXITCODE
       $agentRetryLines = @(
         '{"id":"init","method":"initialize"}'
         ('{"id":"retry","tool":"retry_last_message","arguments":{"session_id":"' + $sessionId + '"}}')
         '{"id":"stop","method":"shutdown"}'
       )
-      $agentRetryOutput = $agentRetryLines | cargo run --quiet --bin speakmate -- --db "$tmpDb" agent serve --stdio --allow-writes --yes --allow-network --allow-tool retry_last_message 2>&1 | Out-String
+      $agentRetryOutput = $agentRetryLines | cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent serve --stdio --allow-writes --yes --allow-network --allow-tool retry_last_message 2>&1 | Out-String
       $agentRetryExit = $LASTEXITCODE
 
-      $coachOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session coach-report --session "$sessionId" --json --allow-network 2>&1 | Out-String
+      $coachOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session coach-report --session "$sessionId" --json --allow-network 2>&1 | Out-String
       $coachExit = $LASTEXITCODE
       $agentCoachLines = @(
         '{"id":"init","method":"initialize"}'
         ('{"id":"coach","tool":"generate_session_coaching_report","arguments":{"session_id":"' + $sessionId + '"}}')
         '{"id":"stop","method":"shutdown"}'
       )
-      $agentCoachOutput = $agentCoachLines | cargo run --quiet --bin speakmate -- --db "$tmpDb" agent serve --stdio --read-only --allow-network 2>&1 | Out-String
+      $agentCoachOutput = $agentCoachLines | cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" agent serve --stdio --read-only --allow-network 2>&1 | Out-String
       $agentCoachExit = $LASTEXITCODE
 
-      $exportOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" session export --session "$sessionId" --json 2>&1 | Out-String
+      $exportOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" session export --session "$sessionId" --json 2>&1 | Out-String
       $exportExit = $LASTEXITCODE
-      $auditOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" audit list --json --limit 8 2>&1 | Out-String
+      $auditOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" audit list --json --limit 8 2>&1 | Out-String
       $auditExit = $LASTEXITCODE
-      $filteredAuditOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" audit list --json --limit 8 --operation practice.message.send --actor speakmate-cli --result success --session "$sessionId" 2>&1 | Out-String
+      $filteredAuditOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" audit list --json --limit 8 --operation practice.message.send --actor speakmate-cli --result success --session "$sessionId" 2>&1 | Out-String
       $filteredAuditExit = $LASTEXITCODE
-      $retryAuditOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" audit list --json --limit 8 --operation practice.message.retry_last --actor speakmate-cli --result success --session "$sessionId" 2>&1 | Out-String
+      $retryAuditOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" audit list --json --limit 8 --operation practice.message.retry_last --actor speakmate-cli --result success --session "$sessionId" 2>&1 | Out-String
       $retryAuditExit = $LASTEXITCODE
-      $agentRetryAuditOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" audit list --json --limit 8 --operation practice.message.retry_last --actor speakmate-agent --result success --session "$sessionId" 2>&1 | Out-String
+      $agentRetryAuditOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" audit list --json --limit 8 --operation practice.message.retry_last --actor speakmate-agent --result success --session "$sessionId" 2>&1 | Out-String
       $agentRetryAuditExit = $LASTEXITCODE
 
       $escape = [char]27
@@ -599,7 +599,7 @@ function Test-SendMessageMockSmoke {
         -and $exportOutput -match 'Mock assistant response from Lv4 smoke' `
         -and $exportOutput -match '"summary"' `
         -and $exportOutput -match '"transcript_markdown"' `
-        -and $exportOutput -match 'SpeakMate Session Report' `
+        -and $exportOutput -match 'VoxVerse Session Report' `
         -and $auditOutput -match 'practice\.message\.send' `
         -and $auditOutput -match 'practice\.message\.retry_last' `
         -and $auditOutput -match '"result"\s*:\s*"success"' `
@@ -646,6 +646,9 @@ function Get-SpeakMateDbCandidate {
     $candidates += $env:SPEAKMATE_DB
   }
   if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    $candidates += (Join-Path $env:LOCALAPPDATA "com.voxverse.desktop\voxverse.db")
+    $candidates += (Join-Path $env:LOCALAPPDATA "com.voxverse.app\voxverse.db")
+    $candidates += (Join-Path $env:LOCALAPPDATA "com.ai-speaking.desktop\voxverse.db")
     $candidates += (Join-Path $env:LOCALAPPDATA "com.ai-speaking.desktop\speakmate.db")
     $candidates += (Join-Path $env:LOCALAPPDATA "com.ai-speaking.app\speakmate.db")
     $candidates += (Join-Path $env:LOCALAPPDATA "SpeakMate\speakmate.db")
@@ -683,12 +686,12 @@ function Test-ProfileSwitchSmoke {
     Push-Location (Join-Path $root "src-tauri")
     try {
       $global:LASTEXITCODE = 0
-      $output = & cargo run --quiet --bin speakmate -- --db "$tmpDb" config profiles switch default --json --yes 2>&1 | Out-String
+      $output = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" config profiles switch default --json --yes 2>&1 | Out-String
       $exitCode = $LASTEXITCODE
       $escape = [char]27
       $output = $output -replace "$escape\[[0-9;]*m", ""
 
-      $auditOutput = & cargo run --quiet --bin speakmate -- --db "$tmpDb" audit list --json --limit 5 2>&1 | Out-String
+      $auditOutput = & cargo run --quiet --bin voxverse-cli -- --db "$tmpDb" audit list --json --limit 5 2>&1 | Out-String
       $auditExitCode = $LASTEXITCODE
       $auditOutput = $auditOutput -replace "$escape\[[0-9;]*m", ""
       $combinedOutput = "$output`n$auditOutput"
@@ -766,10 +769,10 @@ function Write-Report {
 
 Invoke-Check "pnpm build" "pnpm build"
 Invoke-Check "cargo check" "cargo check" (Join-Path $root "src-tauri")
-Invoke-Check "speakmate cli diagnostics" "cargo run --quiet --bin speakmate -- diagnostics run --json" (Join-Path $root "src-tauri")
-Invoke-Check "speakmate cli characters" "cargo run --quiet --bin speakmate -- character list --json" (Join-Path $root "src-tauri")
-Invoke-Check "speakmate cli sessions" "cargo run --quiet --bin speakmate -- session list --json" (Join-Path $root "src-tauri")
-Invoke-Check "speakmate agent tools" "cargo run --quiet --bin speakmate -- agent tools list --json" (Join-Path $root "src-tauri")
+Invoke-Check "speakmate cli diagnostics" "cargo run --quiet --bin voxverse-cli -- diagnostics run --json" (Join-Path $root "src-tauri")
+Invoke-Check "speakmate cli characters" "cargo run --quiet --bin voxverse-cli -- character list --json" (Join-Path $root "src-tauri")
+Invoke-Check "speakmate cli sessions" "cargo run --quiet --bin voxverse-cli -- session list --json" (Join-Path $root "src-tauri")
+Invoke-Check "speakmate agent tools" "cargo run --quiet --bin voxverse-cli -- agent tools list --json" (Join-Path $root "src-tauri")
 Test-AgentStdioSmoke
 Test-McpStdioSmoke
 Test-ProfileSwitchSmoke

@@ -11,7 +11,8 @@ use std::path::{Path, PathBuf};
 use std::process;
 use std::time::Duration;
 
-const CURRENT_APP_ID: &str = "com.voxverse.app";
+const CURRENT_APP_ID: &str = "com.voxverse.desktop";
+const LEGACY_VOXVERSE_APP_ID: &str = "com.voxverse.app";
 const LEGACY_APP_ID: &str = "com.ai-speaking.desktop";
 const LEGACY_APP_ID_2: &str = "com.ai-speaking.app";
 const DB_FILE_NAME: &str = "voxverse.db";
@@ -1158,26 +1159,26 @@ fn canonical_write_tool_name(tool_name: &str) -> Option<&'static str> {
 
 fn print_help() {
     println!(
-        "SpeakMate CLI {version}
+        "VoxVerse CLI {version}
 
 USAGE:
-  speakmate status [--json] [--db <path>]
-  speakmate config profiles list [--json] [--db <path>]
-  speakmate config profiles switch <profile-id> --yes [--json] [--db <path>]
-  speakmate character list [--json] [--limit <n>] [--db <path>]
-  speakmate session list [--json] [--limit <n>] [--db <path>]
-  speakmate session start --character <id> --yes [--title <title>] [--mode <id>] [--scenario <id>] [--json] [--db <path>]
-  speakmate session append-message --session <id> --role <user|assistant> --content <text> --yes [--json] [--db <path>]
-  speakmate session send-message --session <id> --content <text> --yes --allow-network [--json] [--db <path>]
-  speakmate session retry-last --session <id> --yes --allow-network [--json] [--db <path>]
-  speakmate session coach-report --session <id> --allow-network [--json] [--db <path>]
-  speakmate session export --session <id> [--json] [--db <path>]
-  speakmate audit list [--json] [--limit <n>] [--operation <op>] [--actor <actor>] [--result <result>] [--session <id>] [--db <path>]
-  speakmate audit export [--json] [--operation <op>] [--actor <actor>] [--result <result>] [--db <path>]
-  speakmate diagnostics run [--json] [--db <path>]
-  speakmate agent tools list [--json] [--allow-writes] [--allow-network]
-  speakmate agent serve --stdio --read-only [--allow-network] [--db <path>]
-  speakmate agent serve --stdio --allow-writes --yes [--allow-network] [--allow-tool <tool>] [--db <path>]
+  pnpm cli -- status [--json] [--db <path>]
+  pnpm cli -- config profiles list [--json] [--db <path>]
+  pnpm cli -- config profiles switch <profile-id> --yes [--json] [--db <path>]
+  pnpm cli -- character list [--json] [--limit <n>] [--db <path>]
+  pnpm cli -- session list [--json] [--limit <n>] [--db <path>]
+  pnpm cli -- session start --character <id> --yes [--title <title>] [--mode <id>] [--scenario <id>] [--json] [--db <path>]
+  pnpm cli -- session append-message --session <id> --role <user|assistant> --content <text> --yes [--json] [--db <path>]
+  pnpm cli -- session send-message --session <id> --content <text> --yes --allow-network [--json] [--db <path>]
+  pnpm cli -- session retry-last --session <id> --yes --allow-network [--json] [--db <path>]
+  pnpm cli -- session coach-report --session <id> --allow-network [--json] [--db <path>]
+  pnpm cli -- session export --session <id> [--json] [--db <path>]
+  pnpm cli -- audit list [--json] [--limit <n>] [--operation <op>] [--actor <actor>] [--result <result>] [--session <id>] [--db <path>]
+  pnpm cli -- audit export [--json] [--operation <op>] [--actor <actor>] [--result <result>] [--db <path>]
+  pnpm cli -- diagnostics run [--json] [--db <path>]
+  pnpm cli -- agent tools list [--json] [--allow-writes] [--allow-network]
+  pnpm cli -- agent serve --stdio --read-only [--allow-network] [--db <path>]
+  pnpm cli -- agent serve --stdio --allow-writes --yes [--allow-network] [--allow-tool <tool>] [--db <path>]
 
 ENV:
   SPEAKMATE_DB       Overrides automatic database discovery.
@@ -1186,6 +1187,7 @@ NOTES:
   Most commands are read-only. Profile switching, session start, message append, send-message, and retry-last require --yes and write audit logs.
   Network-backed send-message, retry-last, and coach-report additionally require --allow-network.
   Coach-report is generated in memory from a local session export and does not write the database or audit log.
+  Legacy database, audit, and keyring names are still discovered for compatibility.
   The CLI never reads or prints API keys.",
         version = env!("CARGO_PKG_VERSION")
     );
@@ -1206,7 +1208,7 @@ fn build_status_report(options: &CliOptions) -> Result<StatusReport, String> {
         session_count = count_table_rows(&conn, "chat_sessions")?;
         message_count = count_table_rows(&conn, "messages")?;
     } else {
-        warnings.push("No SpeakMate database was found. Start the app once or pass --db.".into());
+        warnings.push("No VoxVerse database was found. Start the app once or pass --db.".into());
     }
 
     let active_profile = profiles
@@ -1234,7 +1236,7 @@ fn build_profile_list_report(options: &CliOptions) -> Result<ProfileListReport, 
         let conn = open_readonly(path)?;
         load_profiles(&conn)?
     } else {
-        warnings.push("No SpeakMate database was found. Start the app once or pass --db.".into());
+        warnings.push("No VoxVerse database was found. Start the app once or pass --db.".into());
         Vec::new()
     };
 
@@ -1263,7 +1265,7 @@ fn build_character_list_report(
         let conn = open_readonly(path)?;
         load_characters(&conn, limit, &mut warnings)?
     } else {
-        warnings.push("No SpeakMate database was found. Start the app once or pass --db.".into());
+        warnings.push("No VoxVerse database was found. Start the app once or pass --db.".into());
         Vec::new()
     };
 
@@ -1286,7 +1288,7 @@ fn build_profile_switch_report_for_actor(
 
     let db = resolve_db(options.db_override.as_deref());
     let Some(path) = selected_existing_path(&db) else {
-        return Err("No SpeakMate database was found. Start the app once or pass --db.".into());
+        return Err("No VoxVerse database was found. Start the app once or pass --db.".into());
     };
 
     let conn = open_readwrite(path)?;
@@ -1357,7 +1359,7 @@ fn build_session_list_report(
         let conn = open_readonly(path)?;
         load_sessions(&conn, limit, &mut warnings)?
     } else {
-        warnings.push("No SpeakMate database was found. Start the app once or pass --db.".into());
+        warnings.push("No VoxVerse database was found. Start the app once or pass --db.".into());
         Vec::new()
     };
 
@@ -1402,7 +1404,7 @@ fn build_session_start_report_for_actor(
 
     let db = resolve_db(options.db_override.as_deref());
     let Some(path) = selected_existing_path(&db) else {
-        return Err("No SpeakMate database was found. Start the app once or pass --db.".into());
+        return Err("No VoxVerse database was found. Start the app once or pass --db.".into());
     };
 
     let conn = open_readwrite(path)?;
@@ -1463,7 +1465,7 @@ fn build_message_append_report_for_actor(
 
     let db = resolve_db(options.db_override.as_deref());
     let Some(path) = selected_existing_path(&db) else {
-        return Err("No SpeakMate database was found. Start the app once or pass --db.".into());
+        return Err("No VoxVerse database was found. Start the app once or pass --db.".into());
     };
 
     let conn = open_readwrite(path)?;
@@ -1532,7 +1534,7 @@ fn build_send_message_report_for_actor(
 
     let db = resolve_db(options.db_override.as_deref());
     let Some(path) = selected_existing_path(&db) else {
-        return Err("No SpeakMate database was found. Start the app once or pass --db.".into());
+        return Err("No VoxVerse database was found. Start the app once or pass --db.".into());
     };
 
     let conn = open_readwrite(path)?;
@@ -1643,7 +1645,7 @@ fn build_retry_last_message_report_for_actor(
 
     let db = resolve_db(options.db_override.as_deref());
     let Some(path) = selected_existing_path(&db) else {
-        return Err("No SpeakMate database was found. Start the app once or pass --db.".into());
+        return Err("No VoxVerse database was found. Start the app once or pass --db.".into());
     };
 
     let conn = open_readwrite(path)?;
@@ -1757,7 +1759,7 @@ fn build_session_export_report(
             warnings.push(format!("Session '{session_id}' was not found."));
         }
     } else {
-        warnings.push("No SpeakMate database was found. Start the app once or pass --db.".into());
+        warnings.push("No VoxVerse database was found. Start the app once or pass --db.".into());
     }
 
     Ok(SessionExportReport {
@@ -1781,7 +1783,7 @@ fn build_session_coaching_report(
 
     let db = resolve_db(options.db_override.as_deref());
     let Some(path) = selected_existing_path(&db) else {
-        return Err("No SpeakMate database was found. Start the app once or pass --db.".into());
+        return Err("No VoxVerse database was found. Start the app once or pass --db.".into());
     };
 
     let conn = open_readonly(path)?;
@@ -1854,7 +1856,7 @@ fn build_session_transcript_markdown(session: &SessionInfo, messages: &[MessageI
         .unwrap_or(session.character_id.as_str());
     let mut markdown = String::new();
 
-    markdown.push_str("# SpeakMate Session Report\n\n");
+    markdown.push_str("# VoxVerse Session Report\n\n");
     markdown.push_str(&format!("- Session: `{}`\n", session.id));
     markdown.push_str(&format!("- Title: {title}\n"));
     markdown.push_str(&format!(
@@ -1913,7 +1915,7 @@ fn build_audit_log_report(
 
     let Some(audit_path) = resolve_audit_log_path(&db) else {
         warnings.push(
-            "No SpeakMate database path was available, so no audit log could be resolved.".into(),
+            "No VoxVerse database path was available, so no audit log could be resolved.".into(),
         );
         return Ok(AuditLogReport {
             db,
@@ -2011,7 +2013,7 @@ fn build_diagnostics_report(options: &CliOptions) -> Result<DiagnosticsReport, S
             );
         }
     } else {
-        warnings.push("No SpeakMate database was found. Start the app once or pass --db.".into());
+        warnings.push("No VoxVerse database was found. Start the app once or pass --db.".into());
     }
 
     let active_profile = profiles
@@ -2531,9 +2533,9 @@ fn handle_mcp_request(
                 "version": env!("CARGO_PKG_VERSION")
             },
             "instructions": if allow_writes {
-                "SpeakMate exposes local speaking-practice diagnostics, profiles, sessions, audit events, and a guarded provider-profile switch tool. Tools never return API keys. Write mode is enabled only because the server was started with --allow-writes --yes."
+                "VoxVerse exposes local speaking-practice diagnostics, profiles, sessions, audit events, and a guarded provider-profile switch tool. Tools never return API keys. Write mode is enabled only because the server was started with --allow-writes --yes."
             } else {
-                "SpeakMate exposes local speaking-practice diagnostics, profiles, sessions, and audit events. Tools are read-only in MCP mode and never return API keys."
+                "VoxVerse exposes local speaking-practice diagnostics, profiles, sessions, and audit events. Tools are read-only in MCP mode and never return API keys."
             },
             "networkEnabled": allow_network,
             "writeAllowlist": allowed_tools
@@ -2915,12 +2917,28 @@ fn resolve_db(db_override: Option<&Path>) -> DbInfo {
             &local_app_data.join(CURRENT_APP_ID).join(DB_FILE_NAME),
         ));
         candidates.push(make_candidate(
+            LEGACY_VOXVERSE_APP_ID,
+            &local_app_data
+                .join(LEGACY_VOXVERSE_APP_ID)
+                .join(DB_FILE_NAME),
+        ));
+        candidates.push(make_candidate(
             LEGACY_APP_ID,
             &local_app_data.join(LEGACY_APP_ID).join(DB_FILE_NAME),
         ));
         candidates.push(make_candidate(
+            LEGACY_APP_ID,
+            &local_app_data.join(LEGACY_APP_ID).join(LEGACY_DB_FILE_NAME),
+        ));
+        candidates.push(make_candidate(
+            LEGACY_APP_ID_2,
+            &local_app_data
+                .join(LEGACY_APP_ID_2)
+                .join(LEGACY_DB_FILE_NAME),
+        ));
+        candidates.push(make_candidate(
             "SpeakMate",
-            &local_app_data.join("SpeakMate").join(DB_FILE_NAME),
+            &local_app_data.join("SpeakMate").join(LEGACY_DB_FILE_NAME),
         ));
     }
 
@@ -3474,7 +3492,7 @@ fn call_session_coaching_report(
         vec![
             LlmChatMessage {
                 role: "system".into(),
-                content: "You are SpeakMate's speaking coach. Produce a concise Markdown coaching report for the learner. Focus on practical speaking improvements, useful phrases, grammar or pronunciation risks visible from the transcript, and a short next-practice plan. Use Chinese unless the learner clearly used another language.".into(),
+                content: "You are VoxVerse's speaking coach. Produce a concise Markdown coaching report for the learner. Focus on practical speaking improvements, useful phrases, grammar or pronunciation risks visible from the transcript, and a short next-practice plan. Use Chinese unless the learner clearly used another language.".into(),
             },
             LlmChatMessage {
                 role: "user".into(),
@@ -3931,6 +3949,12 @@ fn seed_cli_practice_modes(conn: &Connection) -> Result<(), String> {
             "IELTS-style spoken answer practice with coaching.",
             "Act as an IELTS speaking examiner. Ask concise Part 1, Part 2, or Part 3 style prompts, then give practical feedback on fluency, vocabulary, grammar, and coherence.",
         ),
+        (
+            "interview_practice",
+            "Interview Practice",
+            "Professional interview rehearsal with follow-up questions and expression coaching.",
+            "Act as a professional interviewer. Ask focused behavioral and experience-based questions, follow up naturally, and coach the learner toward concise, confident answers.",
+        ),
     ];
 
     for (id, name, description, prompt_suffix) in presets {
@@ -4093,7 +4117,7 @@ fn print_json<T: Serialize>(value: &T) -> Result<(), String> {
 }
 
 fn print_status_text(report: &StatusReport) {
-    println!("SpeakMate CLI {}", report.version);
+    println!("VoxVerse CLI {}", report.version);
     println!(
         "Database: {}",
         report.db.path.as_deref().unwrap_or("not discovered")
@@ -4338,14 +4362,14 @@ fn format_audit_filter(filter: &AuditFilter) -> String {
 }
 
 fn print_agent_tools_text(report: &AgentToolsReport) {
-    println!("SpeakMate agent tools ({})", report.mode);
+    println!("VoxVerse agent tools ({})", report.mode);
     for tool in &report.tools {
         println!("- {}: {}", tool.name, tool.description);
     }
 }
 
 fn print_diagnostics_text(report: &DiagnosticsReport) {
-    println!("SpeakMate diagnostics {}", report.version);
+    println!("VoxVerse diagnostics {}", report.version);
     println!("OK: {}", report.ok);
     println!(
         "Database: {}",

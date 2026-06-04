@@ -95,7 +95,11 @@ pub fn get_memory_facts(
              FROM memory_facts
              WHERE character_id = ?1{}
              ORDER BY updated_at DESC LIMIT ?2",
-            if include_deleted { "" } else { " AND is_deleted = 0" }
+            if include_deleted {
+                ""
+            } else {
+                " AND is_deleted = 0"
+            }
         );
         let mut stmt2 = conn.prepare(&sql_no_type)?;
         let rows = stmt2.query_map(params![character_id, limit_i64], row_to_memory_fact)?;
@@ -499,14 +503,9 @@ mod tests {
 
         save_tool_invocation(&db, &record).unwrap();
 
-        let updated = update_tool_invocation_status(
-            &db,
-            "t1",
-            "success",
-            Some(r#"{"saved":true}"#),
-            None,
-        )
-        .unwrap();
+        let updated =
+            update_tool_invocation_status(&db, "t1", "success", Some(r#"{"saved":true}"#), None)
+                .unwrap();
         assert!(updated);
     }
 }

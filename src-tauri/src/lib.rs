@@ -63,6 +63,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // Chat
             commands::chat::send_message,
+            commands::chat::send_session_message,
             commands::chat::save_config,
             commands::chat::get_config,
             commands::chat::list_config_profiles,
@@ -70,6 +71,7 @@ pub fn run() {
             commands::chat::switch_config_profile,
             commands::chat::rename_config_profile,
             commands::chat::delete_config_profile,
+            commands::chat::clear_active_api_key,
             // Characters
             commands::character::get_characters,
             commands::character::save_character,

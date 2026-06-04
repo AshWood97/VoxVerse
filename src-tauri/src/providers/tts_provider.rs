@@ -45,7 +45,11 @@ pub trait TtsProvider: Send + Sync {
     fn name(&self) -> &str;
 
     /// Synthesize speech from text.
-    async fn synthesize(&self, text: &str, voice: &VoiceConfig) -> Result<AudioOutput, ProviderError>;
+    async fn synthesize(
+        &self,
+        text: &str,
+        voice: &VoiceConfig,
+    ) -> Result<AudioOutput, ProviderError>;
 
     /// List available voices.
     async fn list_voices(&self) -> Result<Vec<VoiceInfo>, ProviderError>;
@@ -61,7 +65,11 @@ impl TtsProvider for EdgeTtsProvider {
         "Edge TTS"
     }
 
-    async fn synthesize(&self, text: &str, voice: &VoiceConfig) -> Result<AudioOutput, ProviderError> {
+    async fn synthesize(
+        &self,
+        text: &str,
+        voice: &VoiceConfig,
+    ) -> Result<AudioOutput, ProviderError> {
         let bytes = crate::services::tts::synthesize(text, &voice.voice_id)
             .await
             .map_err(|e| ProviderError::Internal(e.to_string()))?;
@@ -73,8 +81,7 @@ impl TtsProvider for EdgeTtsProvider {
     }
 
     async fn list_voices(&self) -> Result<Vec<VoiceInfo>, ProviderError> {
-        let voices = crate::services::tts::list_voices()
-            .map_err(ProviderError::Unavailable)?;
+        let voices = crate::services::tts::list_voices().map_err(ProviderError::Unavailable)?;
 
         Ok(voices
             .into_iter()

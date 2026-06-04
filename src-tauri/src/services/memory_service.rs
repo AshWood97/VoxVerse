@@ -5,9 +5,7 @@
 
 use crate::error::AppError;
 use crate::repositories::db::DbState;
-use crate::repositories::memory::{
-    self, MemoryFactRecord, RelationshipStateRecord,
-};
+use crate::repositories::memory::{self, MemoryFactRecord, RelationshipStateRecord};
 
 /// Maximum number of memory facts to inject into a prompt.
 const MAX_MEMORY_INJECTION_FACTS: usize = 20;

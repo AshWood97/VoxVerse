@@ -36,8 +36,8 @@ pub async fn get_relationship_state(
     db: State<'_, DbState>,
     character_id: String,
 ) -> Result<RelationshipInfo, String> {
-    let state = memory_service::ensure_relationship_state(&db, &character_id)
-        .map_err(|e| e.to_string())?;
+    let state =
+        memory_service::ensure_relationship_state(&db, &character_id).map_err(|e| e.to_string())?;
 
     Ok(record_to_info(state))
 }
@@ -49,8 +49,8 @@ pub async fn update_relationship_state(
     character_id: String,
     updates: RelationshipUpdate,
 ) -> Result<RelationshipInfo, String> {
-    let mut state = memory_service::ensure_relationship_state(&db, &character_id)
-        .map_err(|e| e.to_string())?;
+    let mut state =
+        memory_service::ensure_relationship_state(&db, &character_id).map_err(|e| e.to_string())?;
 
     if let Some(intimacy) = updates.intimacy_level {
         state.intimacy_level = intimacy.clamp(0, 100);
@@ -87,9 +87,7 @@ fn record_to_info(state: memory::RelationshipStateRecord) -> RelationshipInfo {
         user_preferences: state
             .user_preferences
             .and_then(|s| serde_json::from_str(&s).ok()),
-        boundaries: state
-            .boundaries
-            .and_then(|s| serde_json::from_str(&s).ok()),
+        boundaries: state.boundaries.and_then(|s| serde_json::from_str(&s).ok()),
         commitments: state
             .commitments
             .and_then(|s| serde_json::from_str(&s).ok()),

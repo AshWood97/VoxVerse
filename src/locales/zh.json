@@ -1,6 +1,6 @@
 {
   "app": {
-    "loading": "正在加载 SpeakMate...",
+    "loading": "正在加载 VoxVerse...",
     "newChat": "新对话",
     "history": "历史记录",
     "scenario": "选择场景",
@@ -14,7 +14,7 @@
     "characterImportFailed": "角色导入失败。"
   },
   "sidebar": {
-    "title": "SpeakMate",
+    "title": "VoxVerse",
     "discover": "发现",
     "characters": "角色列表",
     "import": "导入角色",
@@ -57,6 +57,9 @@
     "apiKeyKeep": "留空则保持当前密钥不变",
     "apiKeyOptional": "可选",
     "apiKeyRequired": "请输入 API Key",
+    "apiKeyClear": "清除已保存 Key",
+    "apiKeyClearing": "清除中...",
+    "apiKeyClearConfirm": "清除当前 Profile 已保存的 API Key 吗？Profile 本身和本地数据都会保留。",
     "model": "语言模型",
     "modelRequired": "请输入模型名称。",
     "sttUnavailableOllama": "当前切到 Ollama 时会禁用语音输入，因为现有集成只验证了聊天兼容接口，还没有接入 Whisper 转写。",
@@ -66,8 +69,8 @@
     "otherVoices": "其他",
     "testVoice": "试听语音",
     "stopPreview": "停止试听",
-    "ttsPreviewTextEn": "This is a quick voice preview for SpeakMate.",
-    "ttsPreviewTextZh": "这是 SpeakMate 的语音试听。",
+    "ttsPreviewTextEn": "This is a quick voice preview for VoxVerse.",
+    "ttsPreviewTextZh": "这是 VoxVerse 的语音试听。",
     "ttsEngineActive": "当前语音引擎: {engine}",
     "diagnosticsTitle": "运行诊断",
     "diagnosticsHint": "快速检查聊天端点、Whisper 录音转写准备状态，以及 Edge TTS 是否可用。",

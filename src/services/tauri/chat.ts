@@ -12,6 +12,16 @@ interface MessagePayload {
   content: string;
 }
 
+interface SendMessageContext {
+  characterId?: string | null;
+  sessionId?: string | null;
+}
+
+interface SessionMessageContext {
+  characterId: string;
+  sessionId: string;
+}
+
 /**
  * Send a message to the LLM via Rust backend and stream the response.
  * Returns the full response string after streaming completes.
@@ -20,6 +30,7 @@ export async function sendMessage(
   systemPrompt: string,
   messages: MessagePayload[],
   onToken: (token: string) => void,
+  context: SendMessageContext = {},
 ): Promise<string> {
   const onEvent = new Channel<StreamEvent>();
   onEvent.onmessage = (event) => {
@@ -32,9 +43,33 @@ export async function sendMessage(
     systemPrompt,
     messages,
     onEvent,
+    characterId: context.characterId || null,
+    sessionId: context.sessionId || null,
   });
 
   return result;
+}
+
+export async function sendSessionMessage(
+  systemPrompt: string,
+  messages: MessagePayload[],
+  onToken: (token: string) => void,
+  context: SessionMessageContext,
+): Promise<string> {
+  const onEvent = new Channel<StreamEvent>();
+  onEvent.onmessage = (event) => {
+    if (!event.done && event.token) {
+      onToken(event.token);
+    }
+  };
+
+  return invoke<string>('send_session_message', {
+    systemPrompt,
+    messages,
+    onEvent,
+    characterId: context.characterId,
+    sessionId: context.sessionId,
+  });
 }
 
 /**
@@ -84,6 +119,10 @@ export async function renameConfigProfile(profileId: string, name: string): Prom
 
 export async function deleteConfigProfile(profileId: string): Promise<ConfigInfo> {
   return invoke<ConfigInfo>('delete_config_profile', { profileId });
+}
+
+export async function clearActiveApiKey(): Promise<ConfigInfo> {
+  return invoke<ConfigInfo>('clear_active_api_key');
 }
 
 export async function runRuntimeDiagnostics(): Promise<RuntimeDiagnostics> {

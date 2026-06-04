@@ -47,7 +47,22 @@ pub fn has_api_key_for_profile(profile_id: &str) -> bool {
 }
 
 pub fn delete_api_key_for_profile(profile_id: &str) -> Result<(), AppError> {
-    let entry = get_keyring_entry_for_profile(profile_id)?;
+    delete_keyring_entry_if_present(get_keyring_entry_for_profile(profile_id)?)?;
+
+    if let Ok(entry) = get_legacy_keyring_entry_for_profile(profile_id) {
+        delete_keyring_entry_if_present(entry)?;
+    }
+
+    if profile_id == DEFAULT_PROFILE_ID {
+        if let Ok(entry) = get_legacy_keyring_entry() {
+            delete_keyring_entry_if_present(entry)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn delete_keyring_entry_if_present(entry: Entry) -> Result<(), AppError> {
     match entry.delete_credential() {
         Ok(()) | Err(KeyringError::NoEntry) => Ok(()),
         Err(e) => Err(AppError::Crypto(format!(

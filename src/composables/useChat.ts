@@ -1,7 +1,7 @@
 import { ref, type Ref } from 'vue';
 import type { Message, Character } from '../types/chat';
 import type { SpeechEngine, SpeechStatus } from '../types/voice';
-import { sendMessage } from '../services/tauri/chat';
+import { sendSessionMessage } from '../services/tauri/chat';
 import { useSpeechSynthesis } from './useSpeechSynthesis';
 
 export interface UseChatReturn {
@@ -101,9 +101,17 @@ export function useChat(): UseChatReturn {
     const finalSystemPrompt = character.systemPrompt + scenarioPrompt;
 
     try {
-      const fullResponse = await sendMessage(finalSystemPrompt, history, (token) => {
-        streamingContent.value += token;
-      });
+      const fullResponse = await sendSessionMessage(
+        finalSystemPrompt,
+        history,
+        (token) => {
+          streamingContent.value += token;
+        },
+        {
+          characterId: character.id,
+          sessionId,
+        },
+      );
 
       const assistantMsg: Message = {
         id: createId(),

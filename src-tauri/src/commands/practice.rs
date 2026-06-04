@@ -33,6 +33,7 @@ pub fn list_practice_modes(conn: &Connection) -> Result<Vec<PracticeMode>, AppEr
                 WHEN 'roleplay' THEN 1
                 WHEN 'scenario_drill' THEN 2
                 WHEN 'ielts_speaking' THEN 3
+                WHEN 'interview_practice' THEN 4
                 ELSE 10
             END,
             name ASC",

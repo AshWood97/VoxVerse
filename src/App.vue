@@ -258,6 +258,7 @@ async function handleSend(content: string) {
     // Refresh stats after message sent
     if (sent) {
       statsComposable.loadStats();
+      void feedback.runCorrection(content, sessionId).then(() => statsComposable.loadStats());
     }
   }
 }

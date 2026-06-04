@@ -9,7 +9,7 @@ $repoRoot = Split-Path -Parent $scriptRoot
 
 Push-Location $repoRoot
 try {
-  Write-Host "== cargo fmt speakmate"
+  Write-Host "== cargo fmt voxverse"
   cargo fmt --manifest-path src-tauri\Cargo.toml --check
   if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE

@@ -10,7 +10,10 @@ pub enum ProviderError {
     /// Network-level error (DNS, connection refused, etc.).
     Network(String),
     /// Provider rate-limited the request.
-    RateLimit { retry_after_ms: Option<u64>, message: String },
+    RateLimit {
+        retry_after_ms: Option<u64>,
+        message: String,
+    },
     /// Request timed out.
     Timeout(String),
     /// Invalid input (bad audio format, text too long, etc.).

@@ -8,21 +8,22 @@ This checklist is for manual verification after the automated build checks pass.
 
 ## Environment
 
-- OS:
-- App build:
-- Tester:
-- Date/time:
-- Network:
+- OS: Windows (WUJIE)
+- App build: VoxVerse 1.0.0
+- Tester: Codex automated validation
+- Date/time: 2026-06-04 10:36 +08:00
+- Network: Available for build checks; real provider endpoints not exercised
 - OpenAI-compatible endpoint:
 - Ollama base URL/version/model:
-- Notes:
+- Notes: Automated V0.1/Lv4 full validation passed. Final Lv4 report has only Ollama availability warnings because `ollama` is not on PATH and `http://localhost:11434/api/tags` timed out. Real OpenAI-compatible, Whisper, Ollama, and interactive desktop speech checks still need manual endpoint testing.
 
 ## Preflight
 
-- [ ] `pnpm build` passes
-- [ ] `cargo check` passes
-- [ ] `pnpm validate:v0.1` passes and report path is recorded
-- [ ] `pnpm validate:v0.1:full` passes and report path is recorded
+- [x] `pnpm build` passes
+- [x] `cargo check` passes
+- [x] `pnpm validate:v0.1` passes and report path is recorded (covered by `pnpm validate:v0.1:full`)
+- [x] `pnpm validate:v0.1:full` passes and report path is recorded: `validation-reports/lv4-smoke-report-20260604-103224.md`
+- [x] `pnpm validate:lv4:full` passes and report path is recorded: `validation-reports/lv4-smoke-report-20260604-103634.md`
 - [ ] App opens from the generated installer or release executable
 - [ ] Settings modal opens without console-visible UI breakage
 

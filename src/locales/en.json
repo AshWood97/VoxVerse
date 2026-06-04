@@ -1,6 +1,6 @@
 {
   "app": {
-    "loading": "Loading SpeakMate...",
+    "loading": "Loading VoxVerse...",
     "newChat": "New Chat",
     "history": "History",
     "scenario": "Select Scenario",
@@ -14,7 +14,7 @@
     "characterImportFailed": "Failed to import character."
   },
   "sidebar": {
-    "title": "SpeakMate",
+    "title": "VoxVerse",
     "discover": "Discover",
     "characters": "Characters",
     "import": "Import Character",
@@ -57,6 +57,9 @@
     "apiKeyKeep": "Leave empty to keep current key",
     "apiKeyOptional": "Optional",
     "apiKeyRequired": "Please enter an API key",
+    "apiKeyClear": "Clear Saved Key",
+    "apiKeyClearing": "Clearing...",
+    "apiKeyClearConfirm": "Clear the saved API key for the active profile? The profile itself and local data will stay.",
     "model": "Model",
     "modelRequired": "Model is required.",
     "sttUnavailableOllama": "Voice input is disabled for Ollama because the current integration only verifies chat-compatible endpoints, not Whisper transcription.",
@@ -66,8 +69,8 @@
     "otherVoices": "Other",
     "testVoice": "Preview Voice",
     "stopPreview": "Stop Preview",
-    "ttsPreviewTextEn": "This is a quick voice preview for SpeakMate.",
-    "ttsPreviewTextZh": "这是 SpeakMate 的语音试听。",
+    "ttsPreviewTextEn": "This is a quick voice preview for VoxVerse.",
+    "ttsPreviewTextZh": "这是 VoxVerse 的语音试听。",
     "ttsEngineActive": "Current speech engine: {engine}",
     "diagnosticsTitle": "Runtime Diagnostics",
     "diagnosticsHint": "Run a lightweight check for chat, microphone transcription readiness, and Edge TTS availability.",

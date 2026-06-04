@@ -3,7 +3,9 @@ use tauri::{ipc::Channel, State};
 use uuid::Uuid;
 
 use crate::repositories::config::ConfigProfileRecord;
+use crate::repositories::db::DbState;
 use crate::services::llm::{stream_chat_completion, ChatMessage};
+use crate::services::memory_service;
 use crate::state::{
     delete_api_key_for_profile, has_api_key_for_profile, AiProvider, ApiConfig, AppState,
     DEFAULT_PROFILE_ID,
@@ -25,9 +27,12 @@ pub struct StreamEvent {
 #[tauri::command]
 pub async fn send_message(
     state: State<'_, AppState>,
+    db: State<'_, DbState>,
     system_prompt: String,
     messages: Vec<MessagePayload>,
     on_event: Channel<StreamEvent>,
+    character_id: Option<String>,
+    session_id: Option<String>,
 ) -> Result<String, String> {
     let config = {
         let guard = state.config.lock().map_err(|e| e.to_string())?;
@@ -36,10 +41,17 @@ pub async fn send_message(
 
     let api_key = config.get_api_key().map_err(|e| e.to_string())?;
 
+    let final_system_prompt = build_contextual_system_prompt(
+        &db,
+        &system_prompt,
+        character_id.as_deref(),
+        session_id.as_deref(),
+    )?;
+
     // Build messages array with system prompt
     let mut chat_messages = vec![ChatMessage {
         role: "system".into(),
-        content: system_prompt,
+        content: final_system_prompt,
     }];
 
     for msg in &messages {
@@ -69,6 +81,64 @@ pub async fn send_message(
     });
 
     Ok(full_response)
+}
+
+/// Session-aware send path that injects per-character memory and relationship context.
+#[tauri::command]
+pub async fn send_session_message(
+    state: State<'_, AppState>,
+    db: State<'_, DbState>,
+    system_prompt: String,
+    messages: Vec<MessagePayload>,
+    on_event: Channel<StreamEvent>,
+    character_id: String,
+    session_id: String,
+) -> Result<String, String> {
+    send_message(
+        state,
+        db,
+        system_prompt,
+        messages,
+        on_event,
+        Some(character_id),
+        Some(session_id),
+    )
+    .await
+}
+
+fn build_contextual_system_prompt(
+    db: &DbState,
+    system_prompt: &str,
+    character_id: Option<&str>,
+    _session_id: Option<&str>,
+) -> Result<String, String> {
+    let Some(character_id) = character_id.map(str::trim).filter(|id| !id.is_empty()) else {
+        return Ok(system_prompt.to_string());
+    };
+
+    let mut context_blocks = Vec::new();
+
+    if let Some(relationship_context) =
+        memory_service::build_relationship_context(db, character_id).map_err(|e| e.to_string())?
+    {
+        context_blocks.push(format!("[Relationship Context]\n{relationship_context}"));
+    }
+
+    if let Some(memory_context) = memory_service::build_memory_prompt_injection(db, character_id)
+        .map_err(|e| e.to_string())?
+    {
+        context_blocks.push(format!("[Memory Context]\n{memory_context}"));
+    }
+
+    if context_blocks.is_empty() {
+        return Ok(system_prompt.to_string());
+    }
+
+    Ok(format!(
+        "{}\n\n{}",
+        system_prompt.trim_end(),
+        context_blocks.join("\n\n")
+    ))
 }
 
 /// Save API configuration and persist non-secret fields to SQLite.
@@ -265,6 +335,14 @@ pub async fn delete_config_profile(
     Ok(config_info_from_runtime(&config))
 }
 
+#[tauri::command]
+pub async fn clear_active_api_key(state: State<'_, AppState>) -> Result<ConfigInfo, String> {
+    let mut config = state.config.lock().map_err(|e| e.to_string())?;
+    delete_api_key_for_profile(&config.profile_id).map_err(|e| e.to_string())?;
+    config.has_keychain_entry = false;
+    Ok(config_info_from_runtime(&config))
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct ConfigInfo {
     pub active_profile_id: String,
@@ -383,7 +461,10 @@ fn ensure_unique_profile_name(
 
 #[cfg(test)]
 mod tests {
-    use super::{validate_profile_name, validate_provider_fields};
+    use super::{build_contextual_system_prompt, validate_profile_name, validate_provider_fields};
+    use crate::repositories::db::DbState;
+    use rusqlite::Connection;
+    use std::sync::Mutex;
 
     #[test]
     fn validates_profile_name_boundaries() {
@@ -401,5 +482,54 @@ mod tests {
         assert!(validate_provider_fields("", "gpt-4o-mini").is_err());
         assert!(validate_provider_fields("api.openai.com/v1", "gpt-4o-mini").is_err());
         assert!(validate_provider_fields("https://api.openai.com/v1", "").is_err());
+    }
+
+    #[test]
+    fn contextual_prompt_injects_relationship_and_visible_memory() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE relationship_state (
+                id TEXT PRIMARY KEY, character_id TEXT NOT NULL UNIQUE,
+                intimacy_level INTEGER NOT NULL DEFAULT 0,
+                trust_level INTEGER NOT NULL DEFAULT 0,
+                plot_stage TEXT, user_preferences TEXT,
+                boundaries TEXT, commitments TEXT, updated_at TEXT NOT NULL
+            );
+            CREATE TABLE memory_facts (
+                id TEXT PRIMARY KEY, character_id TEXT NOT NULL,
+                session_id TEXT, fact_type TEXT NOT NULL, content TEXT NOT NULL,
+                source_turn_id TEXT, confidence REAL NOT NULL DEFAULT 1.0,
+                is_visible INTEGER NOT NULL DEFAULT 1, is_deleted INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+            );",
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO relationship_state
+                (id, character_id, intimacy_level, trust_level, updated_at)
+             VALUES ('rel-1', 'c1', 4, 7, 'now')",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO memory_facts
+                (id, character_id, fact_type, content, created_at, updated_at)
+             VALUES ('mem-1', 'c1', 'preference', 'User likes short answers.', 'now', 'now')",
+            [],
+        )
+        .unwrap();
+
+        let db = DbState {
+            conn: Mutex::new(conn),
+        };
+
+        let prompt =
+            build_contextual_system_prompt(&db, "You are Emily.", Some("c1"), Some("s1")).unwrap();
+
+        assert!(prompt.starts_with("You are Emily."));
+        assert!(prompt.contains("[Relationship Context]"));
+        assert!(prompt.contains("intimacy=4"));
+        assert!(prompt.contains("[Memory Context]"));
+        assert!(prompt.contains("User likes short answers."));
     }
 }
