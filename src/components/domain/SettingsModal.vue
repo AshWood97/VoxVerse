@@ -96,6 +96,7 @@ const selectedVoice = ref(localStorage.getItem('tts_voice') || 'en-US-AriaNeural
 const voicesLoading = ref(false);
 const selectedTheme = ref(localStorage.getItem('theme') || 'dark');
 const selectedLang = ref<AppLanguage>(locale.value as AppLanguage);
+const autoFeedbackEnabled = ref(localStorage.getItem('auto_feedback_enabled') !== 'false');
 
 const popularLocales = ['en-US', 'en-GB', 'en-AU', 'zh-CN', 'zh-TW', 'ja-JP', 'ko-KR', 'fr-FR', 'de-DE', 'es-ES'];
 
@@ -297,6 +298,7 @@ function buildDiagnosticsReport() {
     `Base URL: ${savedConfig.value.baseUrl}`,
     `Model: ${savedConfig.value.model}`,
     `API key saved: ${hasExistingKey.value ? 'yes' : 'no'}`,
+    `Automatic feedback: ${autoFeedbackEnabled.value ? 'enabled' : 'disabled'}`,
     '',
     '## Checks',
   ];
@@ -625,6 +627,13 @@ async function handleVoicePreview() {
   });
 }
 
+function handleAutoFeedbackChange() {
+  localStorage.setItem('auto_feedback_enabled', autoFeedbackEnabled.value ? 'true' : 'false');
+  window.dispatchEvent(new CustomEvent('voxverse:auto-feedback-changed', {
+    detail: { enabled: autoFeedbackEnabled.value },
+  }));
+}
+
 function handleOverlayClick(e: MouseEvent) {
   if ((e.target as HTMLElement).classList.contains('modal-overlay')) {
     emit('close');
@@ -878,6 +887,19 @@ watch(
           <p v-else class="diagnostic-empty">{{ t('settings.diagnosticsEmpty') }}</p>
         </div>
 
+        <div class="field privacy-field">
+          <label class="field-label">{{ t('settings.privacyTitle') }}</label>
+          <label class="toggle-row">
+            <input
+              v-model="autoFeedbackEnabled"
+              type="checkbox"
+              @change="handleAutoFeedbackChange"
+            />
+            <span>{{ t('settings.autoFeedback') }}</span>
+          </label>
+          <p class="field-hint">{{ t('settings.autoFeedbackHint') }}</p>
+        </div>
+
         <div v-if="saveError" class="field-error">{{ saveError }}</div>
         <div v-if="diagnosticsError" class="field-error">{{ diagnosticsError }}</div>
         <div v-if="saveSuccess" class="field-success">{{ t('settings.savedSuccess') }}</div>
@@ -1035,6 +1057,24 @@ watch(
 
 .diagnostics-field {
   padding-top: var(--space-xs);
+}
+
+.privacy-field {
+  padding-top: var(--space-xs);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.toggle-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-primary);
 }
 
 .diagnostics-header {

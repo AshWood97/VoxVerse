@@ -84,6 +84,9 @@
     "diagnosticChat": "Chat Endpoint",
     "diagnosticStt": "Whisper STT",
     "diagnosticTts": "Edge TTS",
+    "privacyTitle": "Privacy Controls",
+    "autoFeedback": "Run automatic correction after each sent message",
+    "autoFeedbackHint": "When disabled, VoxVerse will only send text for correction, translation, polish, or reports when you trigger those actions manually.",
     "diagnosticStatus": {
       "success": "Healthy",
       "warning": "Attention",

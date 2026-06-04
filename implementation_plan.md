@@ -1,20 +1,20 @@
-# SpeakMate 当前实施计划
+# VoxVerse 当前实施计划
 
-> 更新时间: 2026-04-28
-> 范围: V0.1 Release Candidate 查缺补漏 + 人工测试准备
+> 更新时间: 2026-06-04
+> 范围: V0.3 升级收口 + 人工测试准备
 > 对齐文件: `task.md`、`upgrade-plan.md`
 
-当前实施计划不再继续扩大 Lv.5 功能范围。`pnpm build`、`cargo check`、`pnpm tauri build` 和 Lv.4 自动化 smoke test 已经恢复为可信基线。接下来的工作重点是按 `v0.1-gap-closure-plan.md` 补齐现有缺口，完成真实环境验收，然后交给人工测试。
+当前实施计划按 `升级计划v0.3.md` 收口。`pnpm build`、`cargo test` 和 Lv.4 自动化 smoke test 是可信基线；接下来的工作重点是完成真实环境验收、保持命名/迁移兼容，并持续补齐练习模式、结构化反馈、隐私控制和性能验证。
 
 ## 当前目标
 
-把项目从“持续升级中”收束为“可安装、可测试、可记录问题的 V0.1 RC”。
+把项目从“持续升级中”收束为“可安装、可测试、可记录问题的 v0.3 baseline”。
 
-## V0.1 收口规则
+## V0.3 收口规则
 
-- V0.1 查缺补漏清单、停止边界和人工测试顺序以 `v0.1-gap-closure-plan.md` 为准。
-- 测试完成前不再推进新功能，只修清单内的构建、真实端点、主流程、安全和测试文档问题。
-- 自动化基线使用 `pnpm validate:v0.1`；需要 installer 时使用 `pnpm validate:v0.1:full`。
+- v0.3 范围以 `升级计划v0.3.md` 为准。
+- 保持构建、Rust 测试、CLI smoke 和核心 UI 路径可验证。
+- 真实端点、语音 fallback、数据迁移和隐私设置都要有人工验收记录。
 
 ## 工作流 1: Lv.4 人工验收
 
@@ -52,7 +52,7 @@
 
 ## 工作流 3: 第二批产品化能力
 
-- Structured Feedback: 每轮对话输出自然回复、纠错、替代表达、生词、评分和下一步建议
+- Structured Feedback: 每轮对话输出自然回复、纠错、替代表达、生词、总分、分项评分和下一步建议
 - Character Memory: 为角色增加长期记忆摘要、学习目标、记忆查看和清除
 - Local-first & Privacy: 明确本地数据、Keyring、安全配置、导出和清除
 
@@ -72,4 +72,4 @@
 
 ## 当前结论
 
-下一步最稳的工程顺序是: 按 `v0.1-gap-closure-plan.md` 补全缺口 -> `pnpm validate:v0.1` -> 必要时 `pnpm validate:v0.1:full` -> 人工测试 -> 只修 V0.1 清单内阻塞问题。Practice Modes、Character Memory、统计成就、Marketplace 和 Realtime Voice 全部延后到 V0.2/V1 再决策。
+下一步最稳的工程顺序是: 按 `升级计划v0.3.md` 完成收口 -> `pnpm build` -> `cargo test` -> `pnpm validate:lv4` -> 人工测试真实端点和语音 fallback -> 只修 v0.3 清单内阻塞问题。

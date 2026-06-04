@@ -18,7 +18,7 @@ pnpm --silent cli -- session send-message --session <session-id> --content "Hell
 pnpm --silent cli -- session retry-last --session <session-id> --json --yes --allow-network
 pnpm --silent cli -- session coach-report --session <session-id> --json --allow-network
 pnpm --silent cli -- session export --session <id> --json
-pnpm --silent cli -- audit list --json --operation practice.message.send --actor speakmate-cli --result success
+pnpm --silent cli -- audit list --json --operation practice.message.send --actor voxverse-cli --result success
 pnpm --silent cli -- audit export --json --session <id>
 pnpm --silent cli -- diagnostics run --json
 pnpm --silent cli -- agent tools list --json
@@ -39,13 +39,14 @@ cargo run --quiet --manifest-path src-tauri/Cargo.toml --bin voxverse-cli -- dia
 The CLI searches for the local database in this order:
 
 1. `--db <path>`
-2. `SPEAKMATE_DB`
-3. `%LOCALAPPDATA%\com.voxverse.desktop\voxverse.db`
-4. `%LOCALAPPDATA%\com.voxverse.app\voxverse.db` (legacy)
-5. `%LOCALAPPDATA%\com.ai-speaking.desktop\voxverse.db` (legacy)
-6. `%LOCALAPPDATA%\com.ai-speaking.desktop\speakmate.db` (legacy)
-7. `%LOCALAPPDATA%\com.ai-speaking.app\speakmate.db` (legacy)
-8. `%LOCALAPPDATA%\SpeakMate\speakmate.db` (legacy)
+2. `VOXVERSE_DB`
+3. `SPEAKMATE_DB` (legacy)
+4. `%LOCALAPPDATA%\com.voxverse.desktop\voxverse.db`
+5. `%LOCALAPPDATA%\com.voxverse.app\voxverse.db` (legacy)
+6. `%LOCALAPPDATA%\com.ai-speaking.desktop\voxverse.db` (legacy)
+7. `%LOCALAPPDATA%\com.ai-speaking.desktop\speakmate.db` (legacy)
+8. `%LOCALAPPDATA%\com.ai-speaking.app\speakmate.db` (legacy)
+9. `%LOCALAPPDATA%\SpeakMate\speakmate.db` (legacy)
 
 The legacy `com.ai-speaking.app` path is kept so users with data created before the Tauri identifier change can still inspect their local database.
 
@@ -76,8 +77,8 @@ The legacy `com.ai-speaking.app` path is kept so users with data created before 
 - `pnpm cli -- session retry-last --session <id> --json --yes --allow-network`: retry the last user message in a session, append only the assistant response, and audit the recovery run.
 - `pnpm cli -- session coach-report --session <id> --json --allow-network`: export a session locally, call the active profile for Markdown coaching advice, and return the report without DB or audit writes.
 - `pnpm cli -- session export --session <id> --json`: one session plus ordered messages, mode/scenario context, local summary counts, and Markdown transcript.
-- `pnpm cli -- audit list --json`: recent audit events from `speakmate-audit.jsonl`, optionally filtered by `--operation`, `--actor`, `--result`, `--profile`, `--session`, `--message`, or `--character`.
-- `pnpm cli -- audit export --json`: all matching audit events from `speakmate-audit.jsonl`, with the same filter flags as `audit list`.
+- `pnpm cli -- audit list --json`: recent audit events from `voxverse-audit.jsonl`, with legacy `speakmate-audit.jsonl` fallback, optionally filtered by `--operation`, `--actor`, `--result`, `--profile`, `--session`, `--message`, or `--character`.
+- `pnpm cli -- audit export --json`: all matching audit events from `voxverse-audit.jsonl`, with legacy `speakmate-audit.jsonl` fallback and the same filter flags as `audit list`.
 - `pnpm cli -- diagnostics run --json`: schema presence, active profile, candidate database paths, read-only runtime hints.
 - `pnpm cli -- agent tools list --json`: list read-only tools available to agent callers.
 - `pnpm cli -- agent tools list --json --allow-network`: include network read-only coaching report generation in the advertised tool list.
@@ -93,7 +94,7 @@ The legacy `com.ai-speaking.app` path is kept so users with data created before 
 
 ## UI Feedback vs CLI Coach Report
 
-- The in-app feedback panel is a per-message learning helper. It asks the model for structured JSON so the UI can render grammar correction, translation, polish, and summary cards. If the model returns prose instead of JSON, V0.2 shows the raw model response as a fallback instead of failing the panel, and successful corrections are saved for stats/report context.
+- The in-app feedback panel is a per-message learning helper. It asks the model for structured JSON so the UI can render grammar correction, translation, polish, score breakdown, next drills, and summary cards. If the model returns prose instead of JSON, VoxVerse shows the raw model response as a fallback instead of failing the panel, and successful corrections are saved for stats/report context.
 - `session coach-report` is a CLI/agent report path. It exports a local session transcript, sends that transcript to the active model endpoint only when `--allow-network` is present, and returns Markdown coaching advice. It does not write DB rows or audit events because it is intentionally network read-only.
 
 ## Agent Protocols

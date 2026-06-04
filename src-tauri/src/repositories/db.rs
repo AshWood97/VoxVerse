@@ -259,6 +259,8 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
         [],
     )?;
 
+    ensure_v0_3_indexes(&conn)?;
+
     app.manage(DbState {
         conn: Mutex::new(conn),
     });
@@ -318,6 +320,24 @@ fn column_exists(conn: &Connection, table_name: &str, column_name: &str) -> Resu
     }
 
     Ok(false)
+}
+
+fn ensure_v0_3_indexes(conn: &Connection) -> Result<(), AppError> {
+    conn.execute_batch(
+        "CREATE INDEX IF NOT EXISTS idx_chat_sessions_character_updated
+            ON chat_sessions(character_id, updated_at DESC);
+         CREATE INDEX IF NOT EXISTS idx_messages_session_timestamp
+            ON messages(session_id, timestamp ASC);
+         CREATE INDEX IF NOT EXISTS idx_corrections_session_created
+            ON corrections(session_id, created_at DESC);
+         CREATE INDEX IF NOT EXISTS idx_vocabulary_character_created
+            ON vocabulary(character_id, created_at DESC);
+         CREATE INDEX IF NOT EXISTS idx_memory_facts_character_visible
+            ON memory_facts(character_id, is_deleted, is_visible, updated_at DESC);
+         CREATE INDEX IF NOT EXISTS idx_tool_invocations_session_started
+            ON tool_invocations(session_id, started_at DESC);",
+    )?;
+    Ok(())
 }
 
 fn seed_preset_practice_modes(conn: &Connection) -> Result<(), AppError> {
@@ -438,7 +458,7 @@ fn seed_default_provider_profile(conn: &Connection) -> Result<(), AppError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{column_exists, ensure_column, seed_preset_practice_modes};
+    use super::{column_exists, ensure_column, ensure_v0_3_indexes, seed_preset_practice_modes};
     use crate::error::AppError;
     use rusqlite::Connection;
 
@@ -509,6 +529,58 @@ mod tests {
         // Re-running the migration should be a no-op for existing columns.
         ensure_column(&conn, "chat_sessions", "mode_id", "TEXT")?;
         ensure_column(&conn, "chat_sessions", "scenario_id", "TEXT")?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn creates_v0_3_performance_indexes_idempotently() -> Result<(), AppError> {
+        let conn = Connection::open_in_memory()?;
+        conn.execute_batch(
+            "CREATE TABLE chat_sessions (
+                id TEXT PRIMARY KEY,
+                character_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+             );
+             CREATE TABLE messages (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                timestamp INTEGER NOT NULL
+             );
+             CREATE TABLE corrections (
+                id TEXT PRIMARY KEY,
+                session_id TEXT,
+                created_at TEXT NOT NULL
+             );
+             CREATE TABLE vocabulary (
+                id TEXT PRIMARY KEY,
+                character_id TEXT,
+                created_at TEXT NOT NULL
+             );
+             CREATE TABLE memory_facts (
+                id TEXT PRIMARY KEY,
+                character_id TEXT NOT NULL,
+                is_deleted INTEGER NOT NULL,
+                is_visible INTEGER NOT NULL,
+                updated_at TEXT NOT NULL
+             );
+             CREATE TABLE tool_invocations (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                started_at TEXT NOT NULL
+             );",
+        )?;
+
+        ensure_v0_3_indexes(&conn)?;
+        ensure_v0_3_indexes(&conn)?;
+
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM sqlite_master
+             WHERE type = 'index' AND name LIKE 'idx_%'",
+            [],
+            |row| row.get(0),
+        )?;
+        assert_eq!(count, 6);
 
         Ok(())
     }

@@ -4,13 +4,14 @@ VoxVerse is a voice-first character universe for immersive roleplay and learning
 
 ## Current Status
 
-VoxVerse is moving from V0.1 release-candidate stabilization into the V0.2 productization track. The active upgrade baseline is:
+VoxVerse is on the V0.3 upgrade baseline. The active upgrade scope is:
 - **Provider Profiles**: Multiple OpenAI-compatible, Ollama, or custom profiles with per-profile OS Keychain storage for API keys.
 - **Practice Modes**: Free Talk, Roleplay, Scenario Drill, IELTS Speaking, and Interview Practice are seeded into SQLite and saved on sessions.
 - **Voice Runtime UX**: The UI exposes recording, transcription, thinking, speaking, fallback, and error states for STT/TTS flows.
-- **Structured Feedback Loop**: Each successful user turn can enter the correction/vocabulary/session feedback path without blocking chat.
+- **Structured Feedback Loop**: Each successful user turn can enter correction/vocabulary/session feedback with score breakdowns and next-drill suggestions.
 - **Character Memory & Relationship Context**: Visible long-term facts and relationship state are injected into chat prompts per character.
 - **Native CLI & Agent Control**: `pnpm cli -- ...` exposes read-only diagnostics/export plus guarded write/network tools.
+- **Local-first Privacy Controls**: Automatic per-message correction can be disabled while keeping manual correction, translation, polish, and report actions available.
 
 ## Documentation Map
 

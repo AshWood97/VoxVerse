@@ -19,6 +19,10 @@ const DB_FILE_NAME: &str = "voxverse.db";
 const LEGACY_DB_FILE_NAME: &str = "speakmate.db";
 const AUDIT_LOG_FILE_NAME: &str = "voxverse-audit.jsonl";
 const LEGACY_AUDIT_LOG_FILE_NAME: &str = "speakmate-audit.jsonl";
+const CURRENT_CLI_ACTOR: &str = "voxverse-cli";
+const CURRENT_AGENT_ACTOR: &str = "voxverse-agent";
+const LEGACY_CLI_ACTOR: &str = "speakmate-cli";
+const LEGACY_AGENT_ACTOR: &str = "speakmate-agent";
 const CLI_CHAT_COMPLETION_TIMEOUT: Duration = Duration::from_secs(120);
 
 #[derive(Debug, Clone)]
@@ -1181,7 +1185,8 @@ USAGE:
   pnpm cli -- agent serve --stdio --allow-writes --yes [--allow-network] [--allow-tool <tool>] [--db <path>]
 
 ENV:
-  SPEAKMATE_DB       Overrides automatic database discovery.
+  VOXVERSE_DB        Overrides automatic database discovery.
+  SPEAKMATE_DB       Legacy alias for VOXVERSE_DB.
 
 NOTES:
   Most commands are read-only. Profile switching, session start, message append, send-message, and retry-last require --yes and write audit logs.
@@ -1252,7 +1257,7 @@ fn build_profile_switch_report(
     profile_id: &str,
     yes: bool,
 ) -> Result<ProfileSwitchReport, String> {
-    build_profile_switch_report_for_actor(options, profile_id, yes, "speakmate-cli")
+    build_profile_switch_report_for_actor(options, profile_id, yes, CURRENT_CLI_ACTOR)
 }
 
 fn build_character_list_report(
@@ -1385,7 +1390,7 @@ fn build_session_start_report(
         mode_id,
         scenario_id,
         yes,
-        "speakmate-cli",
+        CURRENT_CLI_ACTOR,
     )
 }
 
@@ -1448,7 +1453,14 @@ fn build_message_append_report(
     content: &str,
     yes: bool,
 ) -> Result<MessageAppendReport, String> {
-    build_message_append_report_for_actor(options, session_id, role, content, yes, "speakmate-cli")
+    build_message_append_report_for_actor(
+        options,
+        session_id,
+        role,
+        content,
+        yes,
+        CURRENT_CLI_ACTOR,
+    )
 }
 
 fn build_message_append_report_for_actor(
@@ -1510,7 +1522,7 @@ fn build_send_message_report(
         content,
         yes,
         allow_network,
-        "speakmate-cli",
+        CURRENT_CLI_ACTOR,
     )
 }
 
@@ -1622,7 +1634,7 @@ fn build_retry_last_message_report(
         session_id,
         yes,
         allow_network,
-        "speakmate-cli",
+        CURRENT_CLI_ACTOR,
     )
 }
 
@@ -1913,7 +1925,7 @@ fn build_audit_log_report(
     let mut warnings = Vec::new();
     let mut events = Vec::new();
 
-    let Some(audit_path) = resolve_audit_log_path(&db) else {
+    let Some(audit_path) = resolve_audit_log_read_path(&db, &mut warnings) else {
         warnings.push(
             "No VoxVerse database path was available, so no audit log could be resolved.".into(),
         );
@@ -1962,7 +1974,7 @@ fn build_audit_log_report(
 
 fn audit_event_matches_filter(event: &AuditEvent, filter: &AuditFilter) -> bool {
     optional_case_insensitive_match(&event.operation, filter.operation.as_deref())
-        && optional_case_insensitive_match(&event.actor, filter.actor.as_deref())
+        && optional_actor_match(&event.actor, filter.actor.as_deref())
         && optional_case_insensitive_match(&event.result, filter.result.as_deref())
         && optional_exact_match(
             event.target_profile_id.as_deref(),
@@ -1986,6 +1998,33 @@ fn optional_case_insensitive_match(actual: &str, expected: Option<&str>) -> bool
     expected
         .map(|expected| actual.eq_ignore_ascii_case(expected))
         .unwrap_or(true)
+}
+
+fn optional_actor_match(actual: &str, expected: Option<&str>) -> bool {
+    let Some(expected) = expected else {
+        return true;
+    };
+
+    actual.eq_ignore_ascii_case(expected)
+        || actor_aliases(actual)
+            .iter()
+            .any(|alias| alias.eq_ignore_ascii_case(expected))
+        || actor_aliases(expected)
+            .iter()
+            .any(|alias| alias.eq_ignore_ascii_case(actual))
+}
+
+fn actor_aliases(actor: &str) -> &'static [&'static str] {
+    if actor.eq_ignore_ascii_case(CURRENT_CLI_ACTOR) || actor.eq_ignore_ascii_case(LEGACY_CLI_ACTOR)
+    {
+        &[CURRENT_CLI_ACTOR, LEGACY_CLI_ACTOR]
+    } else if actor.eq_ignore_ascii_case(CURRENT_AGENT_ACTOR)
+        || actor.eq_ignore_ascii_case(LEGACY_AGENT_ACTOR)
+    {
+        &[CURRENT_AGENT_ACTOR, LEGACY_AGENT_ACTOR]
+    } else {
+        &[]
+    }
 }
 
 fn optional_exact_match(actual: Option<&str>, expected: Option<&str>) -> bool {
@@ -2133,7 +2172,7 @@ fn build_agent_tools_report(
                     name: "actor".into(),
                     kind: "string".into(),
                     required: false,
-                    description: "Optional actor filter, for example speakmate-cli or speakmate-agent."
+                    description: "Optional actor filter, for example voxverse-cli or voxverse-agent. Legacy speakmate actor names are accepted as aliases."
                         .into(),
                 },
                 AgentToolArgument {
@@ -2294,7 +2333,7 @@ fn build_agent_tools_report(
         } else {
             "read-only".into()
         },
-        protocol: "speakmate-jsonl-rpc-v1+mcp-jsonrpc-2.0".into(),
+        protocol: "voxverse-jsonl-rpc-v1+mcp-jsonrpc-2.0".into(),
         network_enabled: allow_network,
         write_allowlist: if allow_writes {
             allowed_tools.to_vec()
@@ -2437,9 +2476,10 @@ fn handle_agent_request(
 
     let result = match method {
         "initialize" => json_result(serde_json::json!({
-            "server": "speakmate",
+            "server": "voxverse",
             "version": env!("CARGO_PKG_VERSION"),
-            "protocol": "speakmate-jsonl-rpc-v1",
+            "protocol": "voxverse-jsonl-rpc-v1",
+            "legacy_protocol": "speakmate-jsonl-rpc-v1",
             "mode": if allow_writes { "allow-writes" } else { "read-only" },
             "network_enabled": allow_network,
             "write_allowlist": allowed_tools
@@ -2529,7 +2569,7 @@ fn handle_mcp_request(
                 "tools": {}
             },
             "serverInfo": {
-                "name": "speakmate",
+                "name": "voxverse",
                 "version": env!("CARGO_PKG_VERSION")
             },
             "instructions": if allow_writes {
@@ -2782,7 +2822,7 @@ fn call_agent_tool(
                 mode_id,
                 scenario_id,
                 true,
-                "speakmate-agent",
+                CURRENT_AGENT_ACTOR,
             )?)
         }
         "append_session_message" => {
@@ -2811,7 +2851,7 @@ fn call_agent_tool(
                 role,
                 content,
                 true,
-                "speakmate-agent",
+                CURRENT_AGENT_ACTOR,
             )?)
         }
         "send_message" => {
@@ -2834,7 +2874,7 @@ fn call_agent_tool(
                 content,
                 true,
                 true,
-                "speakmate-agent",
+                CURRENT_AGENT_ACTOR,
             )?)
         }
         "retry_last_message" | "retry_last" => {
@@ -2851,7 +2891,7 @@ fn call_agent_tool(
                 session_id,
                 true,
                 true,
-                "speakmate-agent",
+                CURRENT_AGENT_ACTOR,
             )?)
         }
         "switch_provider_profile" => {
@@ -2868,7 +2908,7 @@ fn call_agent_tool(
                 options,
                 profile_id,
                 true,
-                "speakmate-agent",
+                CURRENT_AGENT_ACTOR,
             )?)
         }
         _ => Err(format!("Unknown read-only agent tool: {tool_name}")),
@@ -2907,8 +2947,10 @@ fn resolve_db(db_override: Option<&Path>) -> DbInfo {
 
     if let Some(path) = db_override {
         candidates.push(make_candidate("--db", path));
+    } else if let Some(path) = env::var_os("VOXVERSE_DB").map(PathBuf::from) {
+        candidates.push(make_candidate("VOXVERSE_DB", &path));
     } else if let Some(path) = env::var_os("SPEAKMATE_DB").map(PathBuf::from) {
-        candidates.push(make_candidate("SPEAKMATE_DB", &path));
+        candidates.push(make_candidate("SPEAKMATE_DB (legacy)", &path));
     }
 
     if let Some(local_app_data) = env::var_os("LOCALAPPDATA").map(PathBuf::from) {
@@ -3531,28 +3573,34 @@ fn call_chat_completion_with_messages(
 }
 
 fn apply_send_message_env_overrides(profile: &mut ProfileInfo, warnings: &mut Vec<String>) {
-    if let Ok(base_url) = env::var("SPEAKMATE_CLI_SEND_BASE_URL") {
+    if let Some((base_url, source)) =
+        env_var_with_legacy("VOXVERSE_CLI_SEND_BASE_URL", "SPEAKMATE_CLI_SEND_BASE_URL")
+    {
         let trimmed = base_url.trim();
         if !trimmed.is_empty() {
             profile.base_url = trimmed.into();
             profile.provider = infer_provider(&profile.base_url);
-            warnings.push("SPEAKMATE_CLI_SEND_BASE_URL override is active.".into());
+            warnings.push(format!("{source} override is active."));
         }
     }
 
-    if let Ok(provider) = env::var("SPEAKMATE_CLI_SEND_PROVIDER") {
+    if let Some((provider, source)) =
+        env_var_with_legacy("VOXVERSE_CLI_SEND_PROVIDER", "SPEAKMATE_CLI_SEND_PROVIDER")
+    {
         let trimmed = provider.trim();
         if !trimmed.is_empty() {
             profile.provider = normalize_provider(trimmed, &profile.base_url);
-            warnings.push("SPEAKMATE_CLI_SEND_PROVIDER override is active.".into());
+            warnings.push(format!("{source} override is active."));
         }
     }
 
-    if let Ok(model) = env::var("SPEAKMATE_CLI_SEND_MODEL") {
+    if let Some((model, source)) =
+        env_var_with_legacy("VOXVERSE_CLI_SEND_MODEL", "SPEAKMATE_CLI_SEND_MODEL")
+    {
         let trimmed = model.trim();
         if !trimmed.is_empty() {
             profile.model = trimmed.into();
-            warnings.push("SPEAKMATE_CLI_SEND_MODEL override is active.".into());
+            warnings.push(format!("{source} override is active."));
         }
     }
 
@@ -3560,9 +3608,27 @@ fn apply_send_message_env_overrides(profile: &mut ProfileInfo, warnings: &mut Ve
     profile.supports_stt = supports_stt(&profile.provider);
 }
 
+fn env_var_with_legacy(
+    current_name: &'static str,
+    legacy_name: &'static str,
+) -> Option<(String, &'static str)> {
+    env::var(current_name)
+        .ok()
+        .map(|value| (value, current_name))
+        .or_else(|| env::var(legacy_name).ok().map(|value| (value, legacy_name)))
+}
+
 fn get_api_key_for_profile(profile: &ProfileInfo) -> Result<String, String> {
-    if let Ok(api_key) = env::var("SPEAKMATE_CLI_SEND_API_KEY") {
+    if let Some((api_key, _source)) =
+        env_var_with_legacy("VOXVERSE_CLI_SEND_API_KEY", "SPEAKMATE_CLI_SEND_API_KEY")
+    {
         return Ok(api_key);
+    }
+
+    if let Ok(entry) = Entry::new("voxverse", &format!("api-key:{}", profile.id)) {
+        if let Ok(password) = entry.get_password() {
+            return Ok(password);
+        }
     }
 
     if let Ok(entry) = Entry::new("speakmate", &format!("api-key:{}", profile.id)) {
@@ -4035,6 +4101,27 @@ fn resolve_audit_log_path(db: &DbInfo) -> Option<PathBuf> {
     let db_path = db.path.as_deref()?;
     let db_parent = Path::new(db_path).parent()?;
     Some(db_parent.join(AUDIT_LOG_FILE_NAME))
+}
+
+fn resolve_audit_log_read_path(db: &DbInfo, warnings: &mut Vec<String>) -> Option<PathBuf> {
+    let db_path = db.path.as_deref()?;
+    let db_parent = Path::new(db_path).parent()?;
+    let current = db_parent.join(AUDIT_LOG_FILE_NAME);
+    if current.exists() {
+        return Some(current);
+    }
+
+    let legacy = db_parent.join(LEGACY_AUDIT_LOG_FILE_NAME);
+    if legacy.exists() {
+        warnings.push(format!(
+            "Using legacy audit log '{}' because '{}' was not found.",
+            legacy.display(),
+            current.display()
+        ));
+        return Some(legacy);
+    }
+
+    Some(current)
 }
 
 fn read_audit_events(
@@ -4540,8 +4627,8 @@ mod tests {
         let event = AuditEvent {
             timestamp: "2026-04-28T00:00:00Z".into(),
             operation: "practice.message.send".into(),
-            actor: "speakmate-cli".into(),
-            db_path: Some("speakmate.db".into()),
+            actor: "voxverse-cli".into(),
+            db_path: Some("voxverse.db".into()),
             target_profile_id: Some("default".into()),
             target_session_id: Some("sess-1".into()),
             target_message_id: Some("msg-1".into()),
@@ -4556,6 +4643,34 @@ mod tests {
             Some("success".into()),
             None,
             Some("sess-1".into()),
+            None,
+            None,
+        );
+
+        assert!(audit_event_matches_filter(&event, &filter));
+    }
+
+    #[test]
+    fn audit_filter_treats_legacy_and_current_actor_names_as_aliases() {
+        let event = AuditEvent {
+            timestamp: "2026-04-28T00:00:00Z".into(),
+            operation: "practice.message.retry_last".into(),
+            actor: "speakmate-agent".into(),
+            db_path: Some("speakmate.db".into()),
+            target_profile_id: Some("default".into()),
+            target_session_id: Some("sess-1".into()),
+            target_message_id: Some("msg-1".into()),
+            target_character_id: Some("emily".into()),
+            previous_profile_id: None,
+            result: "success".into(),
+            details: "ok".into(),
+        };
+        let filter = build_audit_filter(
+            None,
+            Some("voxverse-agent".into()),
+            None,
+            None,
+            None,
             None,
             None,
         );

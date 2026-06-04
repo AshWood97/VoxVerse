@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SideBar from './components/domain/SideBar.vue';
 import ChatPanel from './components/domain/ChatPanel.vue';
@@ -111,12 +111,15 @@ const showStatsModal = ref(false);
 const showMarketModal = ref(false);
 const showMemoryModal = ref(false);
 const showRelationshipModal = ref(false);
+const autoFeedbackEnabled = ref(localStorage.getItem('auto_feedback_enabled') !== 'false');
 
 const editingCharacter = ref<Character | null>(null);
 const isReady = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
 onMounted(async () => {
+  window.addEventListener('voxverse:auto-feedback-changed', handleAutoFeedbackPreferenceChange);
+
   await Promise.all([
     loadCharacters(),
     loadPracticeModes(),
@@ -132,6 +135,10 @@ onMounted(async () => {
   await statsComposable.loadStats();
   
   isReady.value = true;
+});
+
+onUnmounted(() => {
+  window.removeEventListener('voxverse:auto-feedback-changed', handleAutoFeedbackPreferenceChange);
 });
 
 // Handle character switching
@@ -258,7 +265,9 @@ async function handleSend(content: string) {
     // Refresh stats after message sent
     if (sent) {
       statsComposable.loadStats();
-      void feedback.runCorrection(content, sessionId).then(() => statsComposable.loadStats());
+      if (autoFeedbackEnabled.value) {
+        void feedback.runCorrection(content, sessionId).then(() => statsComposable.loadStats());
+      }
     }
   }
 }
@@ -331,6 +340,16 @@ async function handleMarketImport(char: Character) {
   } catch (error) {
     logError('Failed to import character from market', error);
   }
+}
+
+function handleAutoFeedbackPreferenceChange(event: Event) {
+  const customEvent = event as CustomEvent<{ enabled?: boolean }>;
+  if (typeof customEvent.detail?.enabled === 'boolean') {
+    autoFeedbackEnabled.value = customEvent.detail.enabled;
+    return;
+  }
+
+  autoFeedbackEnabled.value = localStorage.getItem('auto_feedback_enabled') !== 'false';
 }
 </script>
 

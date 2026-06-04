@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { ChatSession } from '../../services/tauri/session';
 import type { Scenario } from '../../types/feedback';
 import type { PracticeMode } from '../../types/practice';
+
+const ITEM_HEIGHT = 88;
+const RENDER_BUFFER = 6;
 
 const props = defineProps<{
   sessions: ChatSession[];
@@ -23,6 +26,27 @@ const sortedSessions = computed(() => {
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   });
 });
+const historyListRef = ref<HTMLElement | null>(null);
+const scrollTop = ref(0);
+const viewportHeight = ref(0);
+const totalHeight = computed(() => sortedSessions.value.length * ITEM_HEIGHT);
+const startIndex = computed(() => Math.max(0, Math.floor(scrollTop.value / ITEM_HEIGHT) - RENDER_BUFFER));
+const endIndex = computed(() => {
+  const visibleCount = Math.ceil((viewportHeight.value || 480) / ITEM_HEIGHT);
+  return Math.min(sortedSessions.value.length, startIndex.value + visibleCount + RENDER_BUFFER * 2);
+});
+const visibleSessions = computed(() => {
+  return sortedSessions.value.slice(startIndex.value, endIndex.value).map((session, index) => ({
+    session,
+    top: (startIndex.value + index) * ITEM_HEIGHT,
+  }));
+});
+
+function handleListScroll(event: Event) {
+  const target = event.target as HTMLElement;
+  scrollTop.value = target.scrollTop;
+  viewportHeight.value = target.clientHeight;
+}
 
 function formatDate(iso: string): string {
   const date = new Date(iso);
@@ -52,29 +76,37 @@ function scenarioName(id: string | null | undefined): string {
         <button class="close-btn" @click="emit('close')">✕</button>
       </div>
 
-      <div class="history-list" v-if="sortedSessions.length > 0">
-        <div 
-          v-for="session in sortedSessions" 
-          :key="session.id"
-          class="history-item"
-          :class="{ 'history-item--active': session.id === activeSessionId }"
-          @click="emit('select', session.id)"
-        >
-          <div class="history-main">
-            <span class="history-title">{{ session.title || 'Conversation' }}</span>
-            <span class="history-context">
-              {{ modeName(session.modeId) }} / {{ scenarioName(session.scenarioId) }}
-            </span>
-            <span class="history-date">{{ formatDate(session.updatedAt) }}</span>
-          </div>
-          <button 
-            type="button" 
-            class="history-delete" 
-            @click.stop="emit('delete', session.id)"
-            title="Delete Session"
+      <div
+        v-if="sortedSessions.length > 0"
+        ref="historyListRef"
+        class="history-list"
+        @scroll="handleListScroll"
+      >
+        <div class="history-virtual-spacer" :style="{ height: `${totalHeight}px` }">
+          <div
+            v-for="item in visibleSessions"
+            :key="item.session.id"
+            class="history-item"
+            :class="{ 'history-item--active': item.session.id === activeSessionId }"
+            :style="{ transform: `translateY(${item.top}px)` }"
+            @click="emit('select', item.session.id)"
           >
-            🗑️
-          </button>
+            <div class="history-main">
+              <span class="history-title">{{ item.session.title || 'Conversation' }}</span>
+              <span class="history-context">
+                {{ modeName(item.session.modeId) }} / {{ scenarioName(item.session.scenarioId) }}
+              </span>
+              <span class="history-date">{{ formatDate(item.session.updatedAt) }}</span>
+            </div>
+            <button
+              type="button"
+              class="history-delete"
+              @click.stop="emit('delete', item.session.id)"
+              title="Delete Session"
+            >
+              🗑️
+            </button>
+          </div>
         </div>
       </div>
       
@@ -139,13 +171,20 @@ function scenarioName(id: string | null | undefined): string {
 
 .history-list {
   padding: var(--space-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
   overflow-y: auto;
+  position: relative;
+}
+
+.history-virtual-spacer {
+  position: relative;
+  min-height: 1px;
 }
 
 .history-item {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -155,6 +194,7 @@ function scenarioName(id: string | null | undefined): string {
   border: 1px solid transparent;
   cursor: pointer;
   transition: all var(--transition-fast);
+  will-change: transform;
 }
 .history-item:hover {
   background: var(--bg-hover);

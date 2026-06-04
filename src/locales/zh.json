@@ -84,6 +84,9 @@
     "diagnosticChat": "聊天端点",
     "diagnosticStt": "Whisper 转写",
     "diagnosticTts": "Edge TTS",
+    "privacyTitle": "隐私控制",
+    "autoFeedback": "每次发送消息后自动运行纠错",
+    "autoFeedbackHint": "关闭后，VoxVerse 只会在你手动触发纠错、翻译、润色或报告时发送文本给模型。",
     "diagnosticStatus": {
       "success": "正常",
       "warning": "注意",

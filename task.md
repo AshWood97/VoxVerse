@@ -1,7 +1,7 @@
-# SpeakMate 路线图与状态总表
+# VoxVerse 路线图与状态总表
 
-> 最后更新: 2026-04-28
-> 当前产品阶段: V0.1 Release Candidate 查缺补漏阶段
+> 最后更新: 2026-06-04
+> 当前产品阶段: V0.3 升级收口阶段
 > 本文件是升级计划的唯一事实源
 
 ## 状态说明
@@ -55,9 +55,9 @@
 
 ## 当前交付重点
 
-### V0.1 Release Candidate
+### V0.3 升级收口
 
-当前目标是把现有能力收束为 V0.1 RC，而不是继续扩展 Lv.5。V0.1 的查缺补漏列表、停止边界和人工测试顺序详见 `v0.1-gap-closure-plan.md`。进入 V0.1 补全阶段后，只做该清单内事项；Practice Modes、Character Memory、统计/成就、Marketplace、Realtime Voice、自动更新等新功能全部延后到 V0.2 或更后版本。
+当前目标是按 `升级计划v0.3.md` 把现有产品化能力收束为 v0.3 baseline。范围包括构建绿灯、VoxVerse 命名统一、Practice Modes、结构化反馈评分、CLI/Agent 兼容、SQLite 性能索引、隐私控制和发布验证记录。
 
 ### Lv.4 高级语音引擎
 
@@ -105,7 +105,7 @@ Native CLI & Agent Control 已新增为 Lv.5 后续升级类别。原生 CLI、J
 - [x] Port checking diagnostics added to launcher debug fallback
 - [x] Production release installers (MSI, NSIS Setup) generated successfully
 
-std::io agent server、受控 profile switch、受控 session start、受控 message append、结构化 session export、filtered audit inspection、agent 写工具 allowlist、网络闸门版 `send_message`、`retry-last` 恢复路径和模型化 `coach-report` 已落地：`speakmate status --json`、`speakmate config profiles list/switch --json`、`speakmate character list --json`、`speakmate session list/start/append-message/send-message/retry-last/coach-report/export --json`、`speakmate audit list/export --json`、`speakmate diagnostics run --json`、`speakmate agent tools list --json`、`speakmate agent serve --stdio --read-only`、`speakmate agent serve --stdio --allow-writes --yes` 可读取或受控切换/创建/追加本地 SQLite 状态；`session export` 已返回 ordered messages、summary counts 和 Markdown transcript，`session coach-report` 可基于本地 export 调用 active profile 生成 Markdown 学习建议；`audit list/export` 支持按 operation、actor、result 和 target id 过滤；`--allow-tool <tool>` 可以收窄 agent 写模式暴露的工具，`send_message`、`retry_last_message` 和 `generate_session_coaching_report` 还必须显式 `--allow-network`。`config profiles switch`、`session start`、`session append-message`、agent `switch_provider_profile`、agent `start_practice_session`、agent `append_session_message`、网络 send-message 和 retry-last 都会写入 `speakmate-audit.jsonl`；coach-report 是网络只读路径，不写 DB 或 audit。Agent 只读工具已包含 `list_characters`、可过滤的 `list_audit_events`，以及 `--allow-network` 下的 `generate_session_coaching_report`，写模式可基于该角色目录创建练习会话、追加本地 user/assistant 消息，并在显式联网授权后调用 active profile 或重试最后一条 user 消息；本地 mock OpenAI-compatible send-message、retry-last 与 coaching report 已纳入自动烟测。
+std::io agent server、受控 profile switch、受控 session start、受控 message append、结构化 session export、filtered audit inspection、agent 写工具 allowlist、网络闸门版 `send_message`、`retry-last` 恢复路径和模型化 `coach-report` 已落地：`pnpm --silent cli -- status --json`、`pnpm --silent cli -- config profiles list/switch --json`、`pnpm --silent cli -- character list --json`、`pnpm --silent cli -- session list/start/append-message/send-message/retry-last/coach-report/export --json`、`pnpm --silent cli -- audit list/export --json`、`pnpm --silent cli -- diagnostics run --json`、`pnpm --silent cli -- agent tools list --json`、`pnpm --silent cli -- agent serve --stdio --read-only`、`pnpm --silent cli -- agent serve --stdio --allow-writes --yes` 可读取或受控切换/创建/追加本地 SQLite 状态；`session export` 已返回 ordered messages、summary counts 和 Markdown transcript，`session coach-report` 可基于本地 export 调用 active profile 生成 Markdown 学习建议；`audit list/export` 支持按 operation、actor、result 和 target id 过滤；`--allow-tool <tool>` 可以收窄 agent 写模式暴露的工具，`send_message`、`retry_last_message` 和 `generate_session_coaching_report` 还必须显式 `--allow-network`。`config profiles switch`、`session start`、`session append-message`、agent `switch_provider_profile`、agent `start_practice_session`、agent `append_session_message`、网络 send-message 和 retry-last 都会写入 `voxverse-audit.jsonl`；旧 `speakmate-audit.jsonl` 仍可读取。coach-report 是网络只读路径，不写 DB 或 audit。Agent 只读工具已包含 `list_characters`、可过滤的 `list_audit_events`，以及 `--allow-network` 下的 `generate_session_coaching_report`，写模式可基于该角色目录创建练习会话、追加本地 user/assistant 消息，并在显式联网授权后调用 active profile 或重试最后一条 user 消息；本地 mock OpenAI-compatible send-message、retry-last 与 coaching report 已纳入自动烟测。
 
 ## 原型阶段功能
 

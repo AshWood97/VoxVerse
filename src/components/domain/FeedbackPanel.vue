@@ -158,6 +158,19 @@ function getActionTitle(action: FeedbackAction | null): string {
             <span class="fp-score-max">/10</span>
           </div>
         </div>
+        <div v-if="summaryResult.scoreBreakdown" class="fp-section">
+          <div class="fp-label">Skill Breakdown</div>
+          <div class="fp-score-grid">
+            <div
+              v-for="(score, key) in summaryResult.scoreBreakdown"
+              :key="key"
+              class="fp-score-chip"
+            >
+              <span class="fp-score-chip__label">{{ key }}</span>
+              <span class="fp-score-chip__value">{{ score }}/10</span>
+            </div>
+          </div>
+        </div>
         <div v-if="summaryResult.strengths?.length" class="fp-section">
           <div class="fp-label">💪 Strengths</div>
           <ul class="fp-list fp-list--good">
@@ -177,6 +190,12 @@ function getActionTitle(action: FeedbackAction | null): string {
             <div class="fp-change-arrow">→</div>
             <div class="fp-change-after">{{ e.correction }}</div>
           </div>
+        </div>
+        <div v-if="summaryResult.nextDrills?.length" class="fp-section">
+          <div class="fp-label">Next Drills</div>
+          <ul class="fp-list fp-list--drill">
+            <li v-for="(drill, i) in summaryResult.nextDrills" :key="i">{{ drill }}</li>
+          </ul>
         </div>
         <div v-if="rawFallback" class="fp-section fp-raw-fallback">
           <div class="fp-label">Raw Model Response</div>
@@ -370,6 +389,35 @@ function getActionTitle(action: FeedbackAction | null): string {
   color: var(--text-tertiary);
 }
 
+.fp-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.fp-score-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+}
+
+.fp-score-chip__label {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: capitalize;
+}
+
+.fp-score-chip__value {
+  color: var(--accent-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
 /* Lists */
 .fp-list {
   list-style: none;
@@ -389,6 +437,7 @@ function getActionTitle(action: FeedbackAction | null): string {
 }
 .fp-list--good li::before { content: '✅'; }
 .fp-list--warn li::before { content: '💡'; }
+.fp-list--drill li::before { content: '→'; }
 
 /* Loading */
 .fp-loading {

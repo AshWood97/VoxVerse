@@ -130,11 +130,13 @@ Practice context:
 
 Generate a learning report as a JSON object with EXACTLY these fields:
 - "overallScore": number (1-10) - overall English proficiency shown
+- "scoreBreakdown": object with numeric 1-10 scores for "fluency", "grammar", "vocabulary", "coherence", and optional "pronunciation"
 - "strengths": array of strings - what the student did well (in Chinese 中文)
 - "improvements": array of strings - areas to improve (in Chinese 中文)
 - "commonErrors": array of objects with "error" and "correction" - recurring mistakes
 - "vocabularyUsed": number - approximate count of unique words used
 - "suggestedTopics": array of strings - recommended topics for next practice
+- "nextDrills": array of strings - 2-4 concrete short drills the student should practice next
 
 Conversation:
 {conversation_text}
@@ -228,6 +230,8 @@ mod tests {
         let prompt = &messages[1].content;
         assert!(prompt.contains("user: Hello\nassistant: Hi there"));
         assert!(prompt.contains("overallScore"));
+        assert!(prompt.contains("scoreBreakdown"));
+        assert!(prompt.contains("nextDrills"));
     }
 
     #[test]

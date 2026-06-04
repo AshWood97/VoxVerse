@@ -48,11 +48,19 @@ export interface PolishResult {
 
 export interface SummaryResult {
   overallScore: number;
+  scoreBreakdown?: {
+    fluency: number;
+    grammar: number;
+    vocabulary: number;
+    coherence: number;
+    pronunciation?: number;
+  };
   strengths: string[];
   improvements: string[];
   commonErrors: { error: string; correction: string }[];
   vocabularyUsed: number;
   suggestedTopics: string[];
+  nextDrills?: string[];
 }
 
 // ── Feedback action type ──
