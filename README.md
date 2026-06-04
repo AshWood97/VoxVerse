@@ -81,6 +81,41 @@ These files are the current documentation entry points:
    - Double-click [LaunchVoxVerse.exe](file:///C:/AI_Coding/VoxVerse/LaunchVoxVerse.exe) to instantly run the newest compiled version of the app (release or debug build) silently.
    - Alternatively, you can run or inspect [LaunchVoxVerse.bat](file:///C:/AI_Coding/VoxVerse/LaunchVoxVerse.bat).
 
+## Platform Targets
+
+- **Windows**: The supported Windows target is Intel/AMD 64-bit. Windows 32-bit (`i686-pc-windows-msvc`) is not part of the v0.5 release scope.
+- **macOS**: The v0.5 macOS target is Apple Silicon. The release target is a locally buildable `.app`; Developer ID signing, notarization, auto-update, and DMG distribution are not part of this pass.
+
+## macOS Apple Silicon
+
+1. Install Rust, Node.js, and pnpm on the Mac:
+
+   ```bash
+   brew install node pnpm
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+2. Install dependencies and start development mode:
+
+   ```bash
+   pnpm install
+   pnpm tauri dev
+   ```
+
+3. Build the frontend and package the desktop app:
+
+   ```bash
+   pnpm build
+   pnpm tauri build
+   ```
+
+   The local `.app` bundle is generated under `src-tauri/target/release/bundle/macos/VoxVerse.app`.
+
+4. Runtime notes:
+   - API keys are stored in the macOS Keychain.
+   - The SQLite database is discovered at `~/Library/Application Support/com.voxverse.desktop/voxverse.db`.
+   - TTS first tries the existing Edge TTS path. If that fails, the frontend falls back to browser `speechSynthesis`.
+
 ## Recommended Tooling
 
 - VS Code

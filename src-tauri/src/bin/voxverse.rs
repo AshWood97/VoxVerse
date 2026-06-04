@@ -5,6 +5,7 @@ use keyring::Entry;
 use rusqlite::{params, Connection, OpenFlags};
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::ffi::OsString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
@@ -2943,45 +2944,118 @@ fn json_result<T: Serialize>(value: T) -> Result<serde_json::Value, String> {
 }
 
 fn resolve_db(db_override: Option<&Path>) -> DbInfo {
+    resolve_db_with_env(db_override, |name| env::var_os(name), |path| path.exists())
+}
+
+fn resolve_db_with_env<GetEnv, PathExists>(
+    db_override: Option<&Path>,
+    get_env: GetEnv,
+    path_exists: PathExists,
+) -> DbInfo
+where
+    GetEnv: Fn(&str) -> Option<OsString>,
+    PathExists: Fn(&Path) -> bool,
+{
     let mut candidates = Vec::new();
 
     if let Some(path) = db_override {
-        candidates.push(make_candidate("--db", path));
-    } else if let Some(path) = env::var_os("VOXVERSE_DB").map(PathBuf::from) {
-        candidates.push(make_candidate("VOXVERSE_DB", &path));
-    } else if let Some(path) = env::var_os("SPEAKMATE_DB").map(PathBuf::from) {
-        candidates.push(make_candidate("SPEAKMATE_DB (legacy)", &path));
+        push_candidate(&mut candidates, "--db", path, &path_exists);
+    } else if let Some(path) = get_env("VOXVERSE_DB").map(PathBuf::from) {
+        push_candidate(&mut candidates, "VOXVERSE_DB", &path, &path_exists);
+    } else if let Some(path) = get_env("SPEAKMATE_DB").map(PathBuf::from) {
+        push_candidate(
+            &mut candidates,
+            "SPEAKMATE_DB (legacy)",
+            &path,
+            &path_exists,
+        );
     }
 
-    if let Some(local_app_data) = env::var_os("LOCALAPPDATA").map(PathBuf::from) {
-        candidates.push(make_candidate(
+    let local_app_data = get_env("LOCALAPPDATA").map(PathBuf::from);
+    if let Some(local_app_data) = &local_app_data {
+        push_candidate(
+            &mut candidates,
             CURRENT_APP_ID,
             &local_app_data.join(CURRENT_APP_ID).join(DB_FILE_NAME),
-        ));
-        candidates.push(make_candidate(
+            &path_exists,
+        );
+        push_candidate(
+            &mut candidates,
             LEGACY_VOXVERSE_APP_ID,
             &local_app_data
                 .join(LEGACY_VOXVERSE_APP_ID)
                 .join(DB_FILE_NAME),
-        ));
-        candidates.push(make_candidate(
+            &path_exists,
+        );
+        push_candidate(
+            &mut candidates,
             LEGACY_APP_ID,
             &local_app_data.join(LEGACY_APP_ID).join(DB_FILE_NAME),
-        ));
-        candidates.push(make_candidate(
+            &path_exists,
+        );
+        push_candidate(
+            &mut candidates,
             LEGACY_APP_ID,
             &local_app_data.join(LEGACY_APP_ID).join(LEGACY_DB_FILE_NAME),
-        ));
-        candidates.push(make_candidate(
+            &path_exists,
+        );
+        push_candidate(
+            &mut candidates,
             LEGACY_APP_ID_2,
             &local_app_data
                 .join(LEGACY_APP_ID_2)
                 .join(LEGACY_DB_FILE_NAME),
-        ));
-        candidates.push(make_candidate(
+            &path_exists,
+        );
+        push_candidate(
+            &mut candidates,
             "SpeakMate",
             &local_app_data.join("SpeakMate").join(LEGACY_DB_FILE_NAME),
-        ));
+            &path_exists,
+        );
+    }
+
+    let should_add_macos_candidates = cfg!(target_os = "macos") || local_app_data.is_none();
+    if should_add_macos_candidates {
+        if let Some(home) = get_env("HOME").map(PathBuf::from) {
+            let app_support = home.join("Library").join("Application Support");
+            push_candidate(
+                &mut candidates,
+                "macOS com.voxverse.desktop",
+                &app_support.join(CURRENT_APP_ID).join(DB_FILE_NAME),
+                &path_exists,
+            );
+            push_candidate(
+                &mut candidates,
+                "macOS com.voxverse.app",
+                &app_support.join(LEGACY_VOXVERSE_APP_ID).join(DB_FILE_NAME),
+                &path_exists,
+            );
+            push_candidate(
+                &mut candidates,
+                "macOS com.ai-speaking.desktop",
+                &app_support.join(LEGACY_APP_ID).join(DB_FILE_NAME),
+                &path_exists,
+            );
+            push_candidate(
+                &mut candidates,
+                "macOS com.ai-speaking.desktop",
+                &app_support.join(LEGACY_APP_ID).join(LEGACY_DB_FILE_NAME),
+                &path_exists,
+            );
+            push_candidate(
+                &mut candidates,
+                "macOS com.ai-speaking.app",
+                &app_support.join(LEGACY_APP_ID_2).join(LEGACY_DB_FILE_NAME),
+                &path_exists,
+            );
+            push_candidate(
+                &mut candidates,
+                "macOS SpeakMate",
+                &app_support.join("SpeakMate").join(LEGACY_DB_FILE_NAME),
+                &path_exists,
+            );
+        }
     }
 
     let selected = candidates
@@ -2997,11 +3071,26 @@ fn resolve_db(db_override: Option<&Path>) -> DbInfo {
     }
 }
 
+fn push_candidate<PathExists>(
+    candidates: &mut Vec<DbCandidate>,
+    source: &str,
+    path: &Path,
+    path_exists: &PathExists,
+) where
+    PathExists: Fn(&Path) -> bool,
+{
+    candidates.push(make_candidate_with_exists(source, path, path_exists(path)));
+}
+
 fn make_candidate(source: &str, path: &Path) -> DbCandidate {
+    make_candidate_with_exists(source, path, path.exists())
+}
+
+fn make_candidate_with_exists(source: &str, path: &Path, exists: bool) -> DbCandidate {
     DbCandidate {
         source: source.into(),
         path: path.display().to_string(),
-        exists: path.exists(),
+        exists,
     }
 }
 
@@ -4493,11 +4582,131 @@ fn print_warnings(warnings: &[String]) {
 mod tests {
     use super::{
         audit_event_matches_filter, build_audit_filter, build_cli_system_prompt,
-        ensure_network_enabled, parse_args, AuditEvent, CharacterPromptInfo, Command, SessionInfo,
+        ensure_network_enabled, parse_args, resolve_db_with_env, AuditEvent, CharacterPromptInfo,
+        Command, SessionInfo, CURRENT_APP_ID, DB_FILE_NAME, LEGACY_VOXVERSE_APP_ID,
     };
+    use std::path::{Path, PathBuf};
 
     fn args(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).into()).collect()
+    }
+
+    fn resolve_db_for_test(
+        db_override: Option<&Path>,
+        env_values: &[(&str, PathBuf)],
+        existing_paths: &[PathBuf],
+    ) -> super::DbInfo {
+        resolve_db_with_env(
+            db_override,
+            |name| {
+                env_values
+                    .iter()
+                    .find(|(key, _)| *key == name)
+                    .map(|(_, value)| value.clone().into_os_string())
+            },
+            |path| existing_paths.iter().any(|existing| existing == path),
+        )
+    }
+
+    #[test]
+    fn discovers_macos_current_app_database() {
+        let home = PathBuf::from("/Users/alice");
+        let db_path = home
+            .join("Library")
+            .join("Application Support")
+            .join(CURRENT_APP_ID)
+            .join(DB_FILE_NAME);
+
+        let info = resolve_db_for_test(None, &[("HOME", home)], &[db_path.clone()]);
+
+        assert!(info.exists);
+        assert_eq!(info.source.as_deref(), Some("macOS com.voxverse.desktop"));
+        assert_eq!(
+            info.path.as_deref(),
+            Some(db_path.display().to_string().as_str())
+        );
+        assert!(info
+            .candidates
+            .iter()
+            .any(|candidate| candidate.source == "macOS com.voxverse.desktop"
+                && candidate.path == db_path.display().to_string()
+                && candidate.exists));
+    }
+
+    #[test]
+    fn discovers_macos_legacy_database_when_current_is_missing() {
+        let home = PathBuf::from("/Users/alice");
+        let legacy_path = home
+            .join("Library")
+            .join("Application Support")
+            .join(LEGACY_VOXVERSE_APP_ID)
+            .join(DB_FILE_NAME);
+
+        let info = resolve_db_for_test(None, &[("HOME", home)], &[legacy_path.clone()]);
+
+        assert!(info.exists);
+        assert_eq!(info.source.as_deref(), Some("macOS com.voxverse.app"));
+        assert_eq!(
+            info.path.as_deref(),
+            Some(legacy_path.display().to_string().as_str())
+        );
+    }
+
+    #[test]
+    fn preserves_windows_local_app_data_candidates() {
+        let local_app_data = PathBuf::from(r"C:\Users\Alice\AppData\Local");
+        let db_path = local_app_data.join(CURRENT_APP_ID).join(DB_FILE_NAME);
+
+        let info = resolve_db_for_test(
+            None,
+            &[("LOCALAPPDATA", local_app_data)],
+            &[db_path.clone()],
+        );
+
+        assert!(info.exists);
+        assert_eq!(info.source.as_deref(), Some(CURRENT_APP_ID));
+        assert_eq!(
+            info.path.as_deref(),
+            Some(db_path.display().to_string().as_str())
+        );
+    }
+
+    #[test]
+    fn keeps_override_and_environment_database_priority() {
+        let override_path = PathBuf::from("/tmp/voxverse-override.db");
+        let env_path = PathBuf::from("/tmp/voxverse-env.db");
+        let home = PathBuf::from("/Users/alice");
+        let macos_path = home
+            .join("Library")
+            .join("Application Support")
+            .join(CURRENT_APP_ID)
+            .join(DB_FILE_NAME);
+
+        let info = resolve_db_for_test(
+            Some(&override_path),
+            &[("VOXVERSE_DB", env_path.clone()), ("HOME", home.clone())],
+            &[override_path.clone(), env_path.clone(), macos_path.clone()],
+        );
+
+        assert!(info.exists);
+        assert_eq!(info.source.as_deref(), Some("--db"));
+        assert_eq!(
+            info.path.as_deref(),
+            Some(override_path.display().to_string().as_str())
+        );
+
+        let env_info = resolve_db_for_test(
+            None,
+            &[("VOXVERSE_DB", env_path.clone()), ("HOME", home)],
+            &[env_path.clone(), macos_path],
+        );
+
+        assert!(env_info.exists);
+        assert_eq!(env_info.source.as_deref(), Some("VOXVERSE_DB"));
+        assert_eq!(
+            env_info.path.as_deref(),
+            Some(env_path.display().to_string().as_str())
+        );
     }
 
     #[test]

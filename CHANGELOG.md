@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.5.0 - 2026-06-04
+
+### Added
+
+- Added support for macOS Application Support database discovery to native CLI (`voxverse-cli`).
+- Added robust unit tests verifying discovery order and platform overrides (Windows and macOS).
+- Added platform target specifications and macOS build setup instructions in `README.md`.
+- Added GitHub Actions CI matrix (`.github/workflows/ci.yml`) to automatically build and test the codebase on Windows and macOS.
+
+### Changed
+
+- Updated version configuration to v0.5.0 across npm (`package.json`), Cargo (`Cargo.toml`), and Tauri (`tauri.conf.json`).
+
+### Compatibility
+
+- Database candidates schema remains identical; CLI JSON output structure is preserved.
+
 ## v0.4.0 - 2026-06-04
 
 ### Added
