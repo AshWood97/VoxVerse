@@ -129,6 +129,8 @@ onMounted(async () => {
 
   if (characters.value.length > 0) {
     await startConversationForCharacter(characters.value[0], true);
+  } else {
+    handleCreateCharacter();
   }
   
   // Initial stats load to check for existing achievements silently
@@ -230,17 +232,35 @@ function handleEditCharacter(id: string) {
 async function handleDeleteCharacter(id: string) {
   if (confirm(t('sidebar.confirmDelete'))) {
     await removeCharacter(id);
-    if (activeCharacterId.value === id && characters.value.length > 0) {
-      await startConversationForCharacter(characters.value[0], true);
+    if (activeCharacterId.value === id) {
+      if (characters.value.length > 0) {
+        await startConversationForCharacter(characters.value[0], true);
+      } else {
+        activeCharacterId.value = '';
+        activeCharacter.value = null;
+        showHistoryModal.value = false;
+        showPracticeModeModal.value = false;
+        showScenarioModal.value = false;
+        showMemoryModal.value = false;
+        showRelationshipModal.value = false;
+        feedback.close();
+        clearCurrentSession();
+        selectPracticeMode('free_talk');
+        selectScenario(null);
+        handleCreateCharacter();
+      }
     }
   }
 }
 
 async function handleSaveCharacter(char: Character) {
+  const wasExistingCharacter = characters.value.some((item) => item.id === char.id);
   await addOrUpdateCharacter(char);
   showCharacterModal.value = false;
-  
-  if (activeCharacterId.value === char.id || characters.value.length === 1) {
+
+  if (!wasExistingCharacter || !activeCharacter.value || characters.value.length === 1) {
+    await startConversationForCharacter(char, true);
+  } else if (activeCharacterId.value === char.id) {
     activeCharacterId.value = char.id;
     activeCharacter.value = char;
   }
@@ -248,26 +268,35 @@ async function handleSaveCharacter(char: Character) {
 
 async function handleSend(content: string) {
   if (activeCharacter.value) {
-    const sessionId = currentSessionId.value || await startNewSession(
-      activeCharacter.value.id,
-      activePracticeModeId.value,
-      activeScenarioId.value,
-    );
-    const promptSuffix = getPracticeModePromptSuffix() + getScenarioPromptSuffix();
-    const sent = await send(
-      content, 
-      activeCharacter.value, 
-      sessionId, 
-      promptSuffix, 
-      currentMessages.value, 
-      addMessage
-    );
-    // Refresh stats after message sent
-    if (sent) {
-      statsComposable.loadStats();
-      if (autoFeedbackEnabled.value) {
-        void feedback.runCorrection(content, sessionId).then(() => statsComposable.loadStats());
+    try {
+      const sessionId = currentSessionId.value || await startNewSession(
+        activeCharacter.value.id,
+        activePracticeModeId.value,
+        activeScenarioId.value,
+      );
+      const promptSuffix = getPracticeModePromptSuffix() + getScenarioPromptSuffix();
+      const sent = await send(
+        content,
+        activeCharacter.value,
+        sessionId,
+        promptSuffix,
+        currentMessages.value,
+        addMessage
+      );
+      // Refresh stats after message sent
+      if (sent) {
+        await statsComposable.loadStats();
+        if (autoFeedbackEnabled.value) {
+          void feedback.runCorrection(content, sessionId)
+            .then(() => statsComposable.loadStats())
+            .catch((feedbackError) => {
+              logError('Failed to run automatic feedback', feedbackError);
+            });
+        }
       }
+    } catch (sendError) {
+      const message = logError('Failed to send message', sendError);
+      error.value = `${t('app.messageSendFailed')}: ${message}`;
     }
   }
 }
@@ -354,7 +383,7 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
 </script>
 
 <template>
-  <div v-if="isReady && activeCharacter" class="app-layout">
+  <div v-if="isReady" class="app-layout">
     <input type="file" ref="fileInputRef" accept=".json,.png" style="display: none" @change="handleFileImport" />
 
     <SideBar
@@ -370,7 +399,7 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
       @export="exportCharacter"
     />
 
-    <div class="main-content">
+    <div v-if="activeCharacter" class="main-content">
       <!-- Top ActionBar -->
       <div class="top-action-bar">
         <button class="top-btn" @click="showHistoryModal = true">
@@ -427,8 +456,27 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
       />
     </div>
 
+    <div v-else class="main-content empty-character">
+      <div class="empty-character-content">
+        <h2>{{ t('app.noCharacterTitle') }}</h2>
+        <p>{{ t('app.noCharacterHint') }}</p>
+        <div class="empty-character-actions">
+          <button class="top-btn accent" type="button" @click="handleCreateCharacter">
+            {{ t('sidebar.create') }}
+          </button>
+          <button class="top-btn" type="button" @click="triggerImport">
+            {{ t('sidebar.import') }}
+          </button>
+          <button class="top-btn" type="button" @click="showMarketModal = true">
+            {{ t('sidebar.discover') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Right Side Feedback Panel -->
     <FeedbackPanel
+      v-if="activeCharacter"
       :is-open="feedback.isOpen.value"
       :is-loading="feedback.isLoading.value"
       :action="feedback.action.value"
@@ -502,13 +550,13 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
     />
 
     <MemoryPanel
-      v-if="showMemoryModal"
+      v-if="showMemoryModal && activeCharacter"
       :character-id="activeCharacterId"
       :character-name="activeCharacter?.name || ''"
       @close="showMemoryModal = false"
     />
 
-    <div v-if="showRelationshipModal" class="modal-overlay-wrapper" @click.self="showRelationshipModal = false">
+    <div v-if="showRelationshipModal && activeCharacter" class="modal-overlay-wrapper" @click.self="showRelationshipModal = false">
       <div class="relationship-modal-container">
         <RelationshipCard
           :character-id="activeCharacterId"
@@ -539,6 +587,41 @@ function handleAutoFeedbackPreferenceChange(event: Event) {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.empty-character {
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: var(--bg-primary);
+}
+
+.empty-character-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 420px;
+  text-align: center;
+}
+
+.empty-character-content h2 {
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.empty-character-content p {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.empty-character-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
 }
 
 .top-action-bar {

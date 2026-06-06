@@ -11,7 +11,10 @@
     "deleteSessionConfirm": "确定删除这段对话历史吗？",
     "vocabularySaved": "“{word}”已保存到生词本！",
     "characterImported": "角色导入成功！",
-    "characterImportFailed": "角色导入失败。"
+    "characterImportFailed": "角色导入失败。",
+    "noCharacterTitle": "未选择角色",
+    "noCharacterHint": "新建、导入或发现一个角色后即可开始。",
+    "messageSendFailed": "消息发送失败"
   },
   "sidebar": {
     "title": "VoxVerse",

@@ -11,7 +11,10 @@
     "deleteSessionConfirm": "Delete this conversation history?",
     "vocabularySaved": "\"{word}\" saved to vocabulary!",
     "characterImported": "Character imported successfully!",
-    "characterImportFailed": "Failed to import character."
+    "characterImportFailed": "Failed to import character.",
+    "noCharacterTitle": "No character selected",
+    "noCharacterHint": "Create, import, or discover a character to begin.",
+    "messageSendFailed": "Failed to send message"
   },
   "sidebar": {
     "title": "VoxVerse",

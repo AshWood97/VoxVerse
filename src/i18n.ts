@@ -13,6 +13,12 @@ const savedLang = localStorage.getItem('app_language');
 const systemLang: AppLanguage = navigator.language.startsWith('zh') ? 'zh' : 'en';
 const locale: AppLanguage = isAppLanguage(savedLang) ? savedLang : systemLang;
 
+function applyDocumentLanguage(lang: AppLanguage) {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  }
+}
+
 export const i18n = createI18n({
   legacy: false, // For Vue 3 Composition API
   locale,
@@ -23,8 +29,11 @@ export const i18n = createI18n({
   }
 });
 
+applyDocumentLanguage(locale);
+
 // Helper to switch language
 export function setLanguage(lang: AppLanguage) {
   i18n.global.locale.value = lang;
   localStorage.setItem('app_language', lang);
+  applyDocumentLanguage(lang);
 }
