@@ -286,6 +286,10 @@ export function useFeedback(): UseFeedbackReturn {
         correctedText: result.corrected || text,
         explanation: result.explanation || null,
         betterExpression: result.betterExpression || null,
+        score: typeof result.score === 'number' ? result.score : null,
+        scoreBreakdown: result.scoreBreakdown || null,
+        pronunciationNote: result.pronunciationNote || null,
+        nextPromptSuggestion: result.nextPromptSuggestion || null,
         createdAt: new Date().toISOString(),
       });
     } catch (errorCause) {

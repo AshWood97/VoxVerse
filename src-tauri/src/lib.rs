@@ -112,6 +112,7 @@ pub fn run() {
             commands::memory::get_memory_facts,
             commands::memory::create_memory_fact,
             commands::memory::delete_memory_fact,
+            commands::memory::clear_character_memory,
             commands::memory::toggle_memory_visibility,
             // Relationship (V1)
             commands::relationship::get_relationship_state,

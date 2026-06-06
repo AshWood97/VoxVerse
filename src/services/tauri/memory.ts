@@ -33,6 +33,10 @@ export async function deleteMemoryFact(factId: string): Promise<boolean> {
   return invoke<boolean>('delete_memory_fact', { factId });
 }
 
+export async function clearCharacterMemory(characterId: string): Promise<number> {
+  return invoke<number>('clear_character_memory', { characterId });
+}
+
 export async function toggleMemoryVisibility(
   factId: string,
   visible: boolean

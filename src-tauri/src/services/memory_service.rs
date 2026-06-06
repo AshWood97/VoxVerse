@@ -69,6 +69,12 @@ pub fn build_relationship_context(
         parts.push(format!("Story stage: {stage}"));
     }
 
+    if let Some(goal) = &state.learning_goal {
+        if !goal.trim().is_empty() {
+            parts.push(format!("Learning goal: {goal}"));
+        }
+    }
+
     // Parse JSON fields if present
     if let Some(prefs) = &state.user_preferences {
         if !prefs.is_empty() && prefs != "null" {
@@ -129,6 +135,7 @@ pub fn ensure_relationship_state(
         intimacy_level: 0,
         trust_level: 0,
         plot_stage: None,
+        learning_goal: None,
         user_preferences: None,
         boundaries: None,
         commitments: None,
@@ -166,7 +173,7 @@ mod tests {
                 id TEXT PRIMARY KEY, character_id TEXT NOT NULL UNIQUE,
                 intimacy_level INTEGER NOT NULL DEFAULT 0,
                 trust_level INTEGER NOT NULL DEFAULT 0,
-                plot_stage TEXT, user_preferences TEXT,
+                plot_stage TEXT, learning_goal TEXT, user_preferences TEXT,
                 boundaries TEXT, commitments TEXT, updated_at TEXT NOT NULL,
                 FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
             )",
@@ -241,6 +248,7 @@ mod tests {
         state.intimacy_level = 5;
         state.trust_level = 3;
         state.plot_stage = Some("friends".into());
+        state.learning_goal = Some("Practice past tense stories".into());
         memory::upsert_relationship_state(&db, &state).unwrap();
 
         let context = build_relationship_context(&db, "c1").unwrap();
@@ -249,5 +257,6 @@ mod tests {
         assert!(text.contains("intimacy=5"));
         assert!(text.contains("trust=3"));
         assert!(text.contains("friends"));
+        assert!(text.contains("Practice past tense stories"));
     }
 }

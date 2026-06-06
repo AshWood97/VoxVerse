@@ -4,17 +4,17 @@ import type { LearningStats } from '../services/tauri/stats';
 
 export interface Achievement {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: string;
 }
 
 const ACHIEVEMENTS_DB: Achievement[] = [
-  { id: 'first_blood', title: 'First Words 🗣️', description: 'Sent your very first message', icon: '🐣' },
-  { id: 'chatterbox', title: 'Chatterbox 💬', description: 'Sent 50 messages total', icon: '🎤' },
-  { id: 'vocab_master', title: 'Vocab Hunter 📚', description: 'Saved your first vocabulary word', icon: '📖' },
-  { id: 'correction_addict', title: 'Perfectionist ✏️', description: 'Used grammar correction 5 times', icon: '✨' },
-  { id: 'streak_3', title: 'On fire! 🔥', description: '3-day learning streak', icon: '🔥' }
+  { id: 'first_blood', titleKey: 'achievements.firstBlood.title', descriptionKey: 'achievements.firstBlood.description', icon: '🐣' },
+  { id: 'chatterbox', titleKey: 'achievements.chatterbox.title', descriptionKey: 'achievements.chatterbox.description', icon: '🎤' },
+  { id: 'vocab_master', titleKey: 'achievements.vocabMaster.title', descriptionKey: 'achievements.vocabMaster.description', icon: '📖' },
+  { id: 'correction_addict', titleKey: 'achievements.correctionAddict.title', descriptionKey: 'achievements.correctionAddict.description', icon: '✨' },
+  { id: 'streak_3', titleKey: 'achievements.streak3.title', descriptionKey: 'achievements.streak3.description', icon: '🔥' }
 ];
 
 // Global state

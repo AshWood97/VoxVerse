@@ -20,6 +20,7 @@ export interface RelationshipState {
   intimacy_level: number;
   trust_level: number;
   plot_stage?: string;
+  learningGoal?: string;
   user_preferences?: Record<string, unknown>;
   boundaries?: Record<string, unknown>;
   commitments?: Record<string, unknown>;

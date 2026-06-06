@@ -6,6 +6,10 @@ export interface SaveCorrectionInput {
   correctedText: string;
   explanation?: string | null;
   betterExpression?: string | null;
+  score?: number | null;
+  scoreBreakdown?: Record<string, number> | null;
+  pronunciationNote?: string | null;
+  nextPromptSuggestion?: string | null;
   createdAt?: string | null;
 }
 

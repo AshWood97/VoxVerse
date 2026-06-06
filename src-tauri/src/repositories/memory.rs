@@ -119,6 +119,21 @@ pub fn soft_delete_memory_fact(db: &DbState, fact_id: &str) -> Result<bool, AppE
     Ok(changed > 0)
 }
 
+pub fn soft_delete_memory_facts_for_character(
+    db: &DbState,
+    character_id: &str,
+) -> Result<usize, AppError> {
+    let conn = db.lock_conn()?;
+    let now = chrono::Utc::now().to_rfc3339();
+    let changed = conn.execute(
+        "UPDATE memory_facts
+         SET is_deleted = 1, updated_at = ?2
+         WHERE character_id = ?1 AND is_deleted = 0",
+        params![character_id, now],
+    )?;
+    Ok(changed)
+}
+
 pub fn toggle_memory_visibility(
     db: &DbState,
     fact_id: &str,
@@ -160,6 +175,7 @@ pub struct RelationshipStateRecord {
     pub intimacy_level: i64,
     pub trust_level: i64,
     pub plot_stage: Option<String>,
+    pub learning_goal: Option<String>,
     pub user_preferences: Option<String>,
     pub boundaries: Option<String>,
     pub commitments: Option<String>,
@@ -173,7 +189,7 @@ pub fn get_relationship_state(
     let conn = db.lock_conn()?;
     conn.query_row(
         "SELECT id, character_id, intimacy_level, trust_level, plot_stage,
-                user_preferences, boundaries, commitments, updated_at
+                learning_goal, user_preferences, boundaries, commitments, updated_at
          FROM relationship_state
          WHERE character_id = ?1",
         params![character_id],
@@ -191,12 +207,13 @@ pub fn upsert_relationship_state(
     conn.execute(
         "INSERT INTO relationship_state
             (id, character_id, intimacy_level, trust_level, plot_stage,
-             user_preferences, boundaries, commitments, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+             learning_goal, user_preferences, boundaries, commitments, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
          ON CONFLICT(character_id) DO UPDATE SET
             intimacy_level = excluded.intimacy_level,
             trust_level = excluded.trust_level,
             plot_stage = excluded.plot_stage,
+            learning_goal = excluded.learning_goal,
             user_preferences = excluded.user_preferences,
             boundaries = excluded.boundaries,
             commitments = excluded.commitments,
@@ -207,6 +224,7 @@ pub fn upsert_relationship_state(
             state.intimacy_level,
             state.trust_level,
             state.plot_stage,
+            state.learning_goal,
             state.user_preferences,
             state.boundaries,
             state.commitments,
@@ -223,10 +241,11 @@ fn row_to_relationship(row: &rusqlite::Row<'_>) -> rusqlite::Result<Relationship
         intimacy_level: row.get(2)?,
         trust_level: row.get(3)?,
         plot_stage: row.get(4)?,
-        user_preferences: row.get(5)?,
-        boundaries: row.get(6)?,
-        commitments: row.get(7)?,
-        updated_at: row.get(8)?,
+        learning_goal: row.get(5)?,
+        user_preferences: row.get(6)?,
+        boundaries: row.get(7)?,
+        commitments: row.get(8)?,
+        updated_at: row.get(9)?,
     })
 }
 
@@ -321,7 +340,7 @@ mod tests {
                 id TEXT PRIMARY KEY, character_id TEXT NOT NULL UNIQUE,
                 intimacy_level INTEGER NOT NULL DEFAULT 0,
                 trust_level INTEGER NOT NULL DEFAULT 0,
-                plot_stage TEXT, user_preferences TEXT,
+                plot_stage TEXT, learning_goal TEXT, user_preferences TEXT,
                 boundaries TEXT, commitments TEXT, updated_at TEXT NOT NULL,
                 FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
             )",
@@ -431,6 +450,33 @@ mod tests {
     }
 
     #[test]
+    fn soft_deletes_all_character_memory_without_returning_content() {
+        let db = setup_test_db();
+        let now = chrono::Utc::now().to_rfc3339();
+        for (id, content) in [("f4", "One"), ("f5", "Two")] {
+            let fact = MemoryFactRecord {
+                id: id.into(),
+                character_id: "c1".into(),
+                session_id: None,
+                fact_type: "custom".into(),
+                content: content.into(),
+                source_turn_id: None,
+                confidence: 1.0,
+                is_visible: true,
+                is_deleted: false,
+                created_at: now.clone(),
+                updated_at: now.clone(),
+            };
+            save_memory_fact(&db, &fact).unwrap();
+        }
+
+        let deleted = soft_delete_memory_facts_for_character(&db, "c1").unwrap();
+        assert_eq!(deleted, 2);
+        assert!(get_memory_facts(&db, "c1", false, None, 10).unwrap().is_empty());
+        assert_eq!(get_memory_facts(&db, "c1", true, None, 10).unwrap().len(), 2);
+    }
+
+    #[test]
     fn toggles_memory_visibility() {
         let db = setup_test_db();
         let now = chrono::Utc::now().to_rfc3339();
@@ -464,6 +510,7 @@ mod tests {
             intimacy_level: 5,
             trust_level: 3,
             plot_stage: Some("introduction".into()),
+            learning_goal: Some("Practice concise answers".into()),
             user_preferences: None,
             boundaries: None,
             commitments: None,
@@ -473,6 +520,7 @@ mod tests {
         upsert_relationship_state(&db, &state).unwrap();
         let loaded = get_relationship_state(&db, "c1").unwrap().unwrap();
         assert_eq!(loaded.intimacy_level, 5);
+        assert_eq!(loaded.learning_goal.as_deref(), Some("Practice concise answers"));
 
         // Update
         let updated = RelationshipStateRecord {

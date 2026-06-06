@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.6.0 - 2026-06-04
+
+### Added
+
+- Added structured per-turn feedback metadata for quick scores, score breakdowns, pronunciation notes, and next prompt suggestions.
+- Added SQLite migrations for structured correction metadata and relationship learning goals.
+- Added current-character memory clearing through a new Tauri command and Memory panel action.
+- Added relationship learning goals and prompt-context injection for character-specific learning direction.
+- Added local-first privacy copy in Settings and productized i18n coverage for feedback, memory, stats, achievements, relationship, and local character samples.
+
+### Changed
+
+- Reframed character discovery as local sample import for v0.6; real marketplace distribution remains out of scope.
+- Updated v0.6 planning, README, and roadmap docs to distinguish release version v0.6.0 from the V0.3/Lv.5 roadmap baseline.
+- Updated version configuration to v0.6.0 across npm, Cargo, and Tauri.
+
+### Compatibility
+
+- Existing feedback, session, CLI, diagnostics, agent, and provider-profile commands remain compatible.
+- New SQLite columns are optional and applied with idempotent startup migrations.
+- Achievement unlock state continues to use stable local IDs in `localStorage`.
+
 ## v0.5.0 - 2026-06-04
 
 ### Added

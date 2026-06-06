@@ -87,6 +87,9 @@
     "privacyTitle": "Privacy Controls",
     "autoFeedback": "Run automatic correction after each sent message",
     "autoFeedbackHint": "When disabled, VoxVerse will only send text for correction, translation, polish, or reports when you trigger those actions manually.",
+    "localDataHint": "Conversations, characters, memory facts, vocabulary, corrections, and stats stay in the local SQLite database.",
+    "keyringDataHint": "API keys are stored per profile in the OS Keychain and are never included in diagnostics or exports.",
+    "exportDataHint": "Use session export or the native CLI when you need a local transcript or learning-data backup.",
     "diagnosticStatus": {
       "success": "Healthy",
       "warning": "Attention",
@@ -147,6 +150,9 @@
     "title": "My Learning Progress",
     "loading": "Loading stats...",
     "streak": "{n} day streak 🔥 | No streak yet",
+    "streakZero": "No streak yet",
+    "streakOne": "1 day streak 🔥",
+    "streakMany": "{n} day streak 🔥",
     "activeDays": "{n} active days in the last 30 days",
     "messagesSent": "Messages Sent",
     "wordsSaved": "Words Saved",
@@ -154,20 +160,46 @@
     "activityChart": "7-Day Activity",
     "chartCaption": "Daily messages sent (user only)",
     "topCorrections": "Most Corrected Phrases",
+    "modeDistribution": "Practice Mode Mix",
+    "recentCorrections": "Recent Corrections",
+    "why": "Why",
+    "better": "Better",
     "noCorrections": "🎉 No corrections yet — keep chatting!",
     "empty": "Start chatting to see your learning stats here!"
   },
   "market": {
-    "title": "Character Market",
-    "loading": "Loading characters...",
-    "error": "Failed to load market.",
+    "title": "Local Character Samples",
+    "subtitle": "Curated import examples. A real marketplace is outside v0.6.",
+    "loading": "Loading local samples...",
+    "error": "Failed to load local samples.",
     "download": "Get",
     "downloading": "...",
     "downloaded": "Added",
+    "localSample": "Local sample",
     "tags": "Tags"
   },
   "achievements": {
-    "unlocked": "Achievement Unlocked!"
+    "unlocked": "Achievement Unlocked!",
+    "firstBlood": {
+      "title": "First Words",
+      "description": "Sent your very first message"
+    },
+    "chatterbox": {
+      "title": "Chatterbox",
+      "description": "Sent 50 messages total"
+    },
+    "vocabMaster": {
+      "title": "Vocab Hunter",
+      "description": "Saved your first vocabulary word"
+    },
+    "correctionAddict": {
+      "title": "Perfectionist",
+      "description": "Used grammar correction 5 times"
+    },
+    "streak3": {
+      "title": "On Fire",
+      "description": "Built a 3-day learning streak"
+    }
   },
   "voiceRuntime": {
     "engine": {
@@ -212,6 +244,94 @@
   },
   "feedback": {
     "targetLanguage": "Chinese"
+  },
+  "feedbackPanel": {
+    "learningReport": "📊 Learning Report",
+    "grammarCheck": "✏️ Grammar Check",
+    "translation": "🌐 Translation",
+    "expressionPolish": "✨ Expression Polish",
+    "analyzing": "Analyzing...",
+    "original": "Original",
+    "correction": "Correction",
+    "noErrors": "✅ No errors found. Great job!",
+    "explanation": "Explanation",
+    "betterExpression": "💡 More Natural Expression",
+    "quickScore": "Quick Score",
+    "pronunciationNote": "Pronunciation Note",
+    "nextPromptSuggestion": "Next Prompt",
+    "vocabulary": "📚 Vocabulary",
+    "saveToVocabulary": "Save to vocabulary",
+    "rawModelResponse": "Raw Model Response",
+    "notes": "Notes",
+    "polished": "Polished",
+    "changes": "Changes",
+    "overallScore": "Overall Score",
+    "skillBreakdown": "Skill Breakdown",
+    "strengths": "💪 Strengths",
+    "improvements": "📈 Areas to Improve",
+    "commonErrors": "Common Errors",
+    "nextDrills": "Next Drills",
+    "scoreLabels": {
+      "grammar": "Grammar",
+      "vocabulary": "Vocabulary",
+      "fluency": "Fluency",
+      "coherence": "Coherence",
+      "pronunciation": "Pronunciation"
+    }
+  },
+  "memory": {
+    "title": "🧠 Memory Management",
+    "subtitle": "Cognitive background facts for {name}",
+    "filtersTitle": "Filters",
+    "addFactTitle": "Add Fact",
+    "type": "Type",
+    "content": "Content",
+    "contentPlaceholder": "e.g. User mentioned they prefer dark roast coffee.",
+    "save": "Save Memory",
+    "clearAll": "Clear Current Character Memory",
+    "clearConfirm": "Clear all active memories for {name}? This only affects this character and does not delete conversations.",
+    "clearSuccess": "Cleared {count} memory facts for this character.",
+    "clearFailed": "Failed to clear character memory.",
+    "loading": "Loading memory facts...",
+    "empty": "No memories found in this category.",
+    "emptyHint": "Start a conversation or add a custom fact to seed this character's memory.",
+    "confidence": "Confidence: {value}%",
+    "disableInjection": "Disable prompt injection",
+    "enableInjection": "Enable prompt injection",
+    "active": "Active",
+    "muted": "Muted",
+    "forget": "Forget memory",
+    "filters": {
+      "all": "All Memories",
+      "event": "Events",
+      "preference": "Preferences",
+      "commitment": "Commitments",
+      "trait": "Traits",
+      "custom": "Custom"
+    },
+    "factTypes": {
+      "event": "Event",
+      "preference": "Preference",
+      "commitment": "Commitment",
+      "trait": "Trait",
+      "custom": "Custom"
+    }
+  },
+  "relationship": {
+    "title": "🎭 Relationship Dynamics",
+    "loading": "Synchronizing relationship context...",
+    "intimacy": "❤️ Intimacy",
+    "trust": "🤝 Trust",
+    "plotStage": "🎬 Story Phase / Plot Stage",
+    "plotStagePlaceholder": "e.g. Acquaintances / Mid-session drift",
+    "learningGoal": "🎯 Learning Goal",
+    "learningGoalPlaceholder": "e.g. Practice concise interview answers",
+    "preferences": "📌 User Preferences",
+    "commitments": "🤝 Commitments & Agreements",
+    "boundaries": "⚠️ Boundaries & Red Lines",
+    "addPreference": "Add preference...",
+    "addCommitment": "Add agreement...",
+    "addBoundary": "Add boundary..."
   },
   "characterModal": {
     "createTitle": "Create Character",

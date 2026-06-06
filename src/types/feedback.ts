@@ -30,6 +30,16 @@ export interface CorrectionResult {
   explanation: string;
   betterExpression: string;
   vocabulary: { word: string; meaning: string }[];
+  score?: number;
+  scoreBreakdown?: {
+    grammar?: number;
+    vocabulary?: number;
+    fluency?: number;
+    coherence?: number;
+    pronunciation?: number;
+  };
+  pronunciationNote?: string;
+  nextPromptSuggestion?: string;
 }
 
 export interface TranslationResult {

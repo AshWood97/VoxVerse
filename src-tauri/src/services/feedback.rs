@@ -37,6 +37,10 @@ Return a JSON object with EXACTLY these fields:
 - "explanation": string - brief explanation of all changes, in Chinese (中文)
 - "betterExpression": string - a more natural/native way to express the same meaning
 - "vocabulary": array of objects with "word" and "meaning" (Chinese) for useful vocabulary
+- "score": number (1-10) - quick learner performance score for this sentence
+- "scoreBreakdown": object with optional numeric 1-10 scores for "grammar", "vocabulary", "fluency", "coherence", and "pronunciation"
+- "pronunciationNote": string - short speaking/pronunciation note when useful, otherwise empty string
+- "nextPromptSuggestion": string - one concise next prompt the learner can answer to practice
 
 Text to analyze: "{}"
 

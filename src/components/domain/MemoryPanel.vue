@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMemory } from '../../composables/useMemory';
 import type { FactType } from '../../types/memory';
 
@@ -12,29 +13,31 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const { facts, isLoading, loadMemoryFacts, addFact, removeFact, toggleVisibility } = useMemory();
+const { t } = useI18n();
+const { facts, isLoading, loadMemoryFacts, addFact, removeFact, clearFacts, toggleVisibility } = useMemory();
 
 const selectedTypeFilter = ref<string>('all');
 const newFactContent = ref('');
 const newFactType = ref<FactType>('custom');
 const isAddingFact = ref(false);
+const clearMessage = ref('');
 
-const factTypes: { value: string; label: string; icon: string }[] = [
-  { value: 'all', label: 'All Memories', icon: '🧠' },
-  { value: 'event', label: 'Events', icon: '📅' },
-  { value: 'preference', label: 'Preferences', icon: '❤️' },
-  { value: 'commitment', label: 'Commitments', icon: '🤝' },
-  { value: 'trait', label: 'Traits', icon: '🎭' },
-  { value: 'custom', label: 'Custom', icon: '📝' },
-];
+const factTypes = computed<{ value: string; label: string; icon: string }[]>(() => [
+  { value: 'all', label: t('memory.filters.all'), icon: '🧠' },
+  { value: 'event', label: t('memory.filters.event'), icon: '📅' },
+  { value: 'preference', label: t('memory.filters.preference'), icon: '❤️' },
+  { value: 'commitment', label: t('memory.filters.commitment'), icon: '🤝' },
+  { value: 'trait', label: t('memory.filters.trait'), icon: '🎭' },
+  { value: 'custom', label: t('memory.filters.custom'), icon: '📝' },
+]);
 
-const newFactTypes: { value: FactType; label: string }[] = [
-  { value: 'event', label: 'Event' },
-  { value: 'preference', label: 'Preference' },
-  { value: 'commitment', label: 'Commitment' },
-  { value: 'trait', label: 'Trait' },
-  { value: 'custom', label: 'Custom' },
-];
+const newFactTypes = computed<{ value: FactType; label: string }[]>(() => [
+  { value: 'event', label: t('memory.factTypes.event') },
+  { value: 'preference', label: t('memory.factTypes.preference') },
+  { value: 'commitment', label: t('memory.factTypes.commitment') },
+  { value: 'trait', label: t('memory.factTypes.trait') },
+  { value: 'custom', label: t('memory.factTypes.custom') },
+]);
 
 function fetchFacts() {
   if (props.characterId) {
@@ -52,6 +55,7 @@ async function handleAddFact() {
     await addFact(props.characterId, newFactType.value, content);
     newFactContent.value = '';
     isAddingFact.value = false;
+    clearMessage.value = '';
   } catch (err) {
     console.error(err);
   }
@@ -63,6 +67,21 @@ async function handleRemoveFact(id: string) {
 
 async function handleToggleVisibility(id: string, currentVisible: boolean) {
   await toggleVisibility(id, !currentVisible);
+}
+
+async function handleClearAll() {
+  if (!facts.value.length) return;
+  if (!window.confirm(t('memory.clearConfirm', { name: props.characterName }))) {
+    return;
+  }
+
+  try {
+    const deletedCount = await clearFacts(props.characterId);
+    clearMessage.value = t('memory.clearSuccess', { count: deletedCount });
+  } catch (err) {
+    clearMessage.value = t('memory.clearFailed');
+    console.error(err);
+  }
 }
 
 const filteredFacts = computed(() => {
@@ -98,8 +117,8 @@ function formatDate(isoString: string) {
       <!-- Header -->
       <div class="modal-header">
         <div class="header-title">
-          <h2>🧠 Memory Management</h2>
-          <span class="subtitle">Cognitive background facts for {{ characterName }}</span>
+          <h2>{{ t('memory.title') }}</h2>
+          <span class="subtitle">{{ t('memory.subtitle', { name: characterName }) }}</span>
         </div>
         <button class="close-btn" @click="emit('close')">✕</button>
       </div>
@@ -109,7 +128,7 @@ function formatDate(isoString: string) {
         <!-- Sidebar filters and quick action -->
         <div class="sidebar-panel">
           <div class="panel-section">
-            <h3 class="section-title">Filters</h3>
+            <h3 class="section-title">{{ t('memory.filtersTitle') }}</h3>
             <div class="filter-list">
               <button
                 v-for="filter in factTypes"
@@ -127,10 +146,10 @@ function formatDate(isoString: string) {
           </div>
 
           <div class="panel-section add-fact-section">
-            <h3 class="section-title">Add Fact</h3>
+            <h3 class="section-title">{{ t('memory.addFactTitle') }}</h3>
             <form @submit.prevent="handleAddFact" class="add-fact-form">
               <div class="form-group">
-                <label>Type</label>
+                <label>{{ t('memory.type') }}</label>
                 <select v-model="newFactType" class="form-select">
                   <option v-for="t in newFactTypes" :key="t.value" :value="t.value">
                     {{ getFactIcon(t.value) }} {{ t.label }}
@@ -138,19 +157,28 @@ function formatDate(isoString: string) {
                 </select>
               </div>
               <div class="form-group">
-                <label>Content</label>
+                <label>{{ t('memory.content') }}</label>
                 <textarea
                   v-model="newFactContent"
-                  placeholder="e.g. User mentioned they prefer dark roast coffee."
+                  :placeholder="t('memory.contentPlaceholder')"
                   rows="3"
                   class="form-textarea"
                   required
                 ></textarea>
               </div>
               <button type="submit" class="submit-btn" :disabled="!newFactContent.trim()">
-                ✨ Save Memory
+                {{ t('memory.save') }}
               </button>
             </form>
+            <button
+              type="button"
+              class="clear-memory-btn"
+              :disabled="!facts.length"
+              @click="handleClearAll"
+            >
+              {{ t('memory.clearAll') }}
+            </button>
+            <p v-if="clearMessage" class="clear-message">{{ clearMessage }}</p>
           </div>
         </div>
 
@@ -158,13 +186,13 @@ function formatDate(isoString: string) {
         <div class="facts-content">
           <div v-if="isLoading" class="state-container">
             <span class="loader"></span>
-            <p>Scanning neural patterns...</p>
+            <p>{{ t('memory.loading') }}</p>
           </div>
           
           <div v-else-if="filteredFacts.length === 0" class="state-container empty-state">
             <span class="empty-icon">🏜️</span>
-            <p>No memories found in this category.</p>
-            <span class="empty-hint">Start a conversation or add a custom fact to seed this character's cognitive base.</span>
+            <p>{{ t('memory.empty') }}</p>
+            <span class="empty-hint">{{ t('memory.emptyHint') }}</span>
           </div>
 
           <div v-else class="facts-list">
@@ -180,7 +208,7 @@ function formatDate(isoString: string) {
               <div class="fact-main">
                 <div class="fact-text">{{ fact.content }}</div>
                 <div class="fact-meta">
-                  <span class="meta-item">Confidence: {{ Math.round(fact.confidence * 100) }}%</span>
+                  <span class="meta-item">{{ t('memory.confidence', { value: Math.round(fact.confidence * 100) }) }}</span>
                   <span class="meta-divider">•</span>
                   <span class="meta-item">{{ formatDate(fact.created_at) }}</span>
                 </div>
@@ -190,14 +218,14 @@ function formatDate(isoString: string) {
                   class="action-btn toggle-visibility-btn"
                   :class="{ 'visible': fact.is_visible }"
                   @click="handleToggleVisibility(fact.id, fact.is_visible)"
-                  :title="fact.is_visible ? 'Disable Prompt Injection' : 'Enable Prompt Injection'"
+                  :title="fact.is_visible ? t('memory.disableInjection') : t('memory.enableInjection')"
                 >
-                  {{ fact.is_visible ? '👁️ Active' : '👁️‍🗨️ Muted' }}
+                  {{ fact.is_visible ? t('memory.active') : t('memory.muted') }}
                 </button>
                 <button
                   class="action-btn delete-btn"
                   @click="handleRemoveFact(fact.id)"
-                  title="Forget Memory"
+                  :title="t('memory.forget')"
                 >
                   🗑️
                 </button>
@@ -404,6 +432,29 @@ function formatDate(isoString: string) {
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.clear-memory-btn {
+  width: 100%;
+  border: 1px solid var(--status-danger-border);
+  border-radius: var(--radius-md);
+  color: var(--status-danger);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+.clear-memory-btn:hover:not(:disabled) {
+  background: var(--status-danger-soft);
+}
+.clear-memory-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.clear-message {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
 }
 
 .facts-content {

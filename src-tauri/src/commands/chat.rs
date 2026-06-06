@@ -492,7 +492,7 @@ mod tests {
                 id TEXT PRIMARY KEY, character_id TEXT NOT NULL UNIQUE,
                 intimacy_level INTEGER NOT NULL DEFAULT 0,
                 trust_level INTEGER NOT NULL DEFAULT 0,
-                plot_stage TEXT, user_preferences TEXT,
+                plot_stage TEXT, learning_goal TEXT, user_preferences TEXT,
                 boundaries TEXT, commitments TEXT, updated_at TEXT NOT NULL
             );
             CREATE TABLE memory_facts (

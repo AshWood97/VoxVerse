@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { LearningStats } from '../../services/tauri/stats';
 
 const props = defineProps<{
@@ -9,6 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ close: [] }>();
+const { t } = useI18n();
 
 // ── 7-Day Chart ────────────────────────────────────────────────────────────
 const CHART_W = 420;
@@ -49,9 +51,9 @@ const areaPath = computed(() => {
 
 // ── Formatters ───────────────────────────────────────────────────────────
 function streakLabel(n: number): string {
-  if (n === 0) return 'No streak yet';
-  if (n === 1) return '1 day streak 🔥';
-  return `${n} day streak 🔥`;
+  if (n === 0) return t('stats.streakZero');
+  if (n === 1) return t('stats.streakOne');
+  return t('stats.streakMany', { n });
 }
 
 function overlayClick(e: MouseEvent) {
@@ -68,7 +70,7 @@ function overlayClick(e: MouseEvent) {
       <div class="stats-header">
         <div class="stats-title">
           <span class="stats-icon">📊</span>
-          <h2>My Learning Progress</h2>
+          <h2>{{ t('stats.title') }}</h2>
         </div>
         <button class="close-btn" @click="emit('close')">✕</button>
       </div>
@@ -76,7 +78,7 @@ function overlayClick(e: MouseEvent) {
       <!-- Loading -->
       <div v-if="isLoading" class="stats-loading">
         <div class="spinner"></div>
-        <span>Loading stats…</span>
+        <span>{{ t('stats.loading') }}</span>
       </div>
 
       <!-- Error -->
@@ -92,7 +94,7 @@ function overlayClick(e: MouseEvent) {
           <span class="streak-num">{{ stats.streak_days }}</span>
           <div class="streak-info">
             <span class="streak-label">{{ streakLabel(stats.streak_days) }}</span>
-            <span class="streak-sub">{{ stats.active_days_30 }} active days in the last 30 days</span>
+            <span class="streak-sub">{{ t('stats.activeDays', { n: stats.active_days_30 }) }}</span>
           </div>
         </div>
 
@@ -101,23 +103,23 @@ function overlayClick(e: MouseEvent) {
           <div class="stat-card">
             <span class="stat-icon">💬</span>
             <span class="stat-value">{{ stats.total_messages.toLocaleString() }}</span>
-            <span class="stat-label">Messages Sent</span>
+            <span class="stat-label">{{ t('stats.messagesSent') }}</span>
           </div>
           <div class="stat-card">
             <span class="stat-icon">📚</span>
             <span class="stat-value">{{ stats.total_vocabulary.toLocaleString() }}</span>
-            <span class="stat-label">Words Saved</span>
+            <span class="stat-label">{{ t('stats.wordsSaved') }}</span>
           </div>
           <div class="stat-card">
             <span class="stat-icon">✏️</span>
             <span class="stat-value">{{ stats.total_corrections.toLocaleString() }}</span>
-            <span class="stat-label">Corrections Run</span>
+            <span class="stat-label">{{ t('stats.correctionsRun') }}</span>
           </div>
         </div>
 
         <!-- 7-Day Activity Chart -->
         <div class="chart-section">
-          <h3 class="section-title">7-Day Activity</h3>
+          <h3 class="section-title">{{ t('stats.activityChart') }}</h3>
           <div class="chart-wrap">
             <svg :width="CHART_W" :height="CHART_H" class="chart-svg" viewBox="0 0 420 80" preserveAspectRatio="xMidYMid meet">
               <!-- Grid lines -->
@@ -159,12 +161,12 @@ function overlayClick(e: MouseEvent) {
               </g>
             </svg>
           </div>
-          <p class="chart-caption">Daily messages sent (user only)</p>
+          <p class="chart-caption">{{ t('stats.chartCaption') }}</p>
         </div>
 
         <!-- Top Corrections -->
         <div v-if="stats.top_corrections.length" class="corrections-section">
-          <h3 class="section-title">Most Corrected Phrases</h3>
+          <h3 class="section-title">{{ t('stats.topCorrections') }}</h3>
           <div class="correction-tags">
             <span
               v-for="([phrase, count]) in stats.top_corrections"
@@ -178,11 +180,11 @@ function overlayClick(e: MouseEvent) {
           </div>
         </div>
         <div v-else class="empty-corrections">
-          <span>🎉 No corrections yet — keep chatting!</span>
+          <span>{{ t('stats.noCorrections') }}</span>
         </div>
 
         <div v-if="stats.mode_distribution.length" class="mode-section">
-          <h3 class="section-title">Practice Mode Mix</h3>
+          <h3 class="section-title">{{ t('stats.modeDistribution') }}</h3>
           <div class="mode-bars">
             <div
               v-for="mode in stats.mode_distribution"
@@ -196,7 +198,7 @@ function overlayClick(e: MouseEvent) {
         </div>
 
         <div v-if="stats.recent_corrections.length" class="recent-section">
-          <h3 class="section-title">Recent Corrections</h3>
+          <h3 class="section-title">{{ t('stats.recentCorrections') }}</h3>
           <div class="recent-list">
             <div
               v-for="correction in stats.recent_corrections"
@@ -206,10 +208,10 @@ function overlayClick(e: MouseEvent) {
               <div class="recent-before">{{ correction.original_text }}</div>
               <div class="recent-after">{{ correction.corrected_text }}</div>
               <div v-if="correction.explanation" class="recent-explanation">
-                Why: {{ correction.explanation }}
+                {{ t('stats.why') }}: {{ correction.explanation }}
               </div>
               <div v-if="correction.better_expression" class="recent-better">
-                Better: {{ correction.better_expression }}
+                {{ t('stats.better') }}: {{ correction.better_expression }}
               </div>
             </div>
           </div>
@@ -219,7 +221,7 @@ function overlayClick(e: MouseEvent) {
 
       <!-- No data -->
       <div v-else class="stats-empty">
-        Start chatting to see your learning stats here!
+        {{ t('stats.empty') }}
       </div>
     </div>
   </div>

@@ -4,14 +4,17 @@ VoxVerse is a voice-first character universe for immersive roleplay and learning
 
 ## Current Status
 
-VoxVerse is on the V0.3 upgrade baseline. The active upgrade scope is:
+VoxVerse is on the v0.6.0 productization baseline. The release number is ahead of the product-roadmap "V0.3 baseline" language in `task.md`: v0.6.0 packages the already-built Lv.5 slices into a tighter desktop learning product while keeping external voice/provider paths marked for manual validation.
+
+The active v0.6 scope is:
 - **Provider Profiles**: Multiple OpenAI-compatible, Ollama, or custom profiles with per-profile OS Keychain storage for API keys.
 - **Practice Modes**: Free Talk, Roleplay, Scenario Drill, IELTS Speaking, and Interview Practice are seeded into SQLite and saved on sessions.
 - **Voice Runtime UX**: The UI exposes recording, transcription, thinking, speaking, fallback, and error states for STT/TTS flows.
-- **Structured Feedback Loop**: Each successful user turn can enter correction/vocabulary/session feedback with score breakdowns and next-drill suggestions.
-- **Character Memory & Relationship Context**: Visible long-term facts and relationship state are injected into chat prompts per character.
+- **Structured Feedback Loop**: Each successful user turn can enter correction/vocabulary/session feedback with quick scores, score breakdowns, pronunciation notes, and next prompt suggestions.
+- **Character Memory & Relationship Context**: Visible long-term facts, relationship state, and per-character learning goals are injected into chat prompts; the Memory panel can clear the active character's memory facts.
 - **Native CLI & Agent Control**: `pnpm cli -- ...` exposes read-only diagnostics/export plus guarded write/network tools.
 - **Local-first Privacy Controls**: Automatic per-message correction can be disabled while keeping manual correction, translation, polish, and report actions available.
+- **Stats, Achievements, and Local Samples**: Learning stats and local achievement toasts are productized, and character discovery is intentionally limited to local sample imports in v0.6.
 
 ## Documentation Map
 
@@ -21,7 +24,7 @@ These files are the current documentation entry points:
 - `implementation_plan.md`: VoxVerse V1 implementation plan details
 - `walkthrough.md`: Developer/Maintainer snapshot and architectural overview
 - `native-cli.md`: Read-only native CLI usage and diagnostic instructions
-- `项目构建日志/README.md`: Iteration indices and historical milestones
+- `升级计划v0.6.md`: Current v0.6 productization execution plan
 
 ## Main Capabilities
 
@@ -37,6 +40,7 @@ These files are the current documentation entry points:
 - Conversation data, characters, memory facts, vocabulary, corrections, and audit logs are stored in the local SQLite database.
 - API keys are stored in the OS Keychain and are never returned by diagnostics, profile listing, or session export.
 - Settings can clear the active profile's saved API key without deleting local learning data.
+- The Memory panel can clear only the active character's memory facts without deleting conversations, vocabulary, or saved corrections.
 - Network operations send content only to the active configured provider. CLI `coach-report` and agent coaching tools send the selected transcript only when `--allow-network` is present.
 - Legacy `speakmate.db`, `speakmate-audit.jsonl`, and old Keyring names remain as compatibility paths for older installs and scripts.
 

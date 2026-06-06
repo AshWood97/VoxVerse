@@ -2,10 +2,9 @@ import type { Character } from '../types/chat';
 
 export interface MarketCharacter extends Character {
   tags: string[];
-  downloads?: number;
 }
 
-// Simulated remote database of curated characters
+// Local curated examples for v0.6. This is not a remote marketplace yet.
 const MOCK_MARKET: MarketCharacter[] = [
   {
     id: `market-char-1`,
@@ -24,7 +23,6 @@ Key behaviors:
     greeting: "Good day to you. I was just reviewing some fascinating transcripts from the 19th century. What intellectual pursuit shall we embark upon today?",
     voiceConfig: { lang: 'en-GB', namePattern: '(male|ryan|thomas)' },
     tags: ['British', 'Advanced', 'Academic'],
-    downloads: 1240
   },
   {
     id: `market-char-2`,
@@ -43,7 +41,6 @@ Key behaviors:
     greeting: "Hi there. I have your resume right here in front of me. Let's start with a brief introduction—tell me a bit about your professional background.",
     voiceConfig: { lang: 'en-US', namePattern: '(female|jenny|michelle)' },
     tags: ['Business', 'Interview', 'Professional'],
-    downloads: 3850
   },
   {
     id: `market-char-3`,
@@ -61,7 +58,6 @@ Key behaviors:
     greeting: "ヤッホー！ Yuki だよ！ (Yahoo! I'm Yuki!) Did you watch any good anime recently? Let's talk about our favorite shows!",
     voiceConfig: { lang: 'ja-JP', namePattern: '(female|nanami)' },
     tags: ['Japanese', 'Casual', 'Anime'],
-    downloads: 5120
   },
   {
     id: `market-char-4`,
@@ -80,12 +76,11 @@ Key behaviors:
     greeting: "¡Hola, amigo! I'm planning my next route to Patagonia. Are you preparing for a trip soon? Let's practice some travel Spanish together!",
     voiceConfig: { lang: 'es-ES', namePattern: '(male|alvaro)' },
     tags: ['Spanish', 'Travel', 'Beginner Friendly'],
-    downloads: 890
   }
 ];
 
 export async function fetchMarketCharacters(): Promise<MarketCharacter[]> {
-  // Simulate network delay
+  // Keep a tiny delay so the local samples behave like the future marketplace UI.
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(MOCK_MARKET);

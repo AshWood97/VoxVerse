@@ -909,6 +909,11 @@ watch(
             <span>{{ t('settings.autoFeedback') }}</span>
           </label>
           <p class="field-hint">{{ t('settings.autoFeedbackHint') }}</p>
+          <div class="privacy-notes">
+            <p>{{ t('settings.localDataHint') }}</p>
+            <p>{{ t('settings.keyringDataHint') }}</p>
+            <p>{{ t('settings.exportDataHint') }}</p>
+          </div>
         </div>
 
         <div v-if="saveError" class="field-error">{{ saveError }}</div>
@@ -1091,6 +1096,21 @@ watch(
   width: 16px;
   height: 16px;
   accent-color: var(--accent-primary);
+}
+
+.privacy-notes {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.privacy-notes p + p {
+  margin-top: 4px;
 }
 
 .diagnostics-header {

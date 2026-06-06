@@ -87,6 +87,9 @@
     "privacyTitle": "隐私控制",
     "autoFeedback": "每次发送消息后自动运行纠错",
     "autoFeedbackHint": "关闭后，VoxVerse 只会在你手动触发纠错、翻译、润色或报告时发送文本给模型。",
+    "localDataHint": "对话、角色、记忆事实、生词、纠错和统计数据都保存在本地 SQLite 数据库中。",
+    "keyringDataHint": "API Key 按 Profile 分别存入系统凭据，不会出现在诊断报告或导出文件中。",
+    "exportDataHint": "需要本地备份或转写稿时，可使用会话导出或原生 CLI 导出能力。",
     "diagnosticStatus": {
       "success": "正常",
       "warning": "注意",
@@ -147,6 +150,9 @@
     "title": "我的学习进度",
     "loading": "正在加载统计数据...",
     "streak": "连续打卡 {n} 天 🔥 | 暂无连续记录",
+    "streakZero": "暂无连续记录",
+    "streakOne": "连续打卡 1 天 🔥",
+    "streakMany": "连续打卡 {n} 天 🔥",
     "activeDays": "过去 30 天共有 {n} 天活跃",
     "messagesSent": "发送消息数",
     "wordsSaved": "收藏生词数",
@@ -154,20 +160,46 @@
     "activityChart": "7 日活跃度",
     "chartCaption": "每日发送的消息数 (仅限用户)",
     "topCorrections": "最常纠错的短语",
+    "modeDistribution": "练习模式分布",
+    "recentCorrections": "最近纠错记录",
+    "why": "原因",
+    "better": "更自然表达",
     "noCorrections": "🎉 还没有被纠错过 — 继续保持聊天！",
     "empty": "开始对话后，您的学习统计将会显示在此处！"
   },
   "market": {
-    "title": "角色发现市场",
-    "loading": "正在获取灵感...",
-    "error": "哎呀，市场走丢了。",
+    "title": "本地示例角色",
+    "subtitle": "可导入的精选示例。真实角色市场不属于 v0.6 范围。",
+    "loading": "正在加载本地示例...",
+    "error": "本地示例加载失败。",
     "download": "获取",
     "downloading": "获取中",
     "downloaded": "已添加",
+    "localSample": "本地示例",
     "tags": "标签"
   },
   "achievements": {
-    "unlocked": "成就解锁！"
+    "unlocked": "成就解锁！",
+    "firstBlood": {
+      "title": "第一次开口",
+      "description": "发送了第一条消息"
+    },
+    "chatterbox": {
+      "title": "聊起来了",
+      "description": "累计发送 50 条消息"
+    },
+    "vocabMaster": {
+      "title": "生词猎手",
+      "description": "收藏了第一个生词"
+    },
+    "correctionAddict": {
+      "title": "表达打磨师",
+      "description": "使用语法纠错 5 次"
+    },
+    "streak3": {
+      "title": "连续学习",
+      "description": "达成 3 天连续练习"
+    }
   },
   "voiceRuntime": {
     "engine": {
@@ -212,6 +244,94 @@
   },
   "feedback": {
     "targetLanguage": "中文"
+  },
+  "feedbackPanel": {
+    "learningReport": "📊 学习报告",
+    "grammarCheck": "✏️ 语法检查",
+    "translation": "🌐 翻译",
+    "expressionPolish": "✨ 表达润色",
+    "analyzing": "正在分析...",
+    "original": "原文",
+    "correction": "纠错",
+    "noErrors": "✅ 未发现错误，做得很好！",
+    "explanation": "解释",
+    "betterExpression": "💡 更自然表达",
+    "quickScore": "本轮评分",
+    "pronunciationNote": "发音提示",
+    "nextPromptSuggestion": "下一步练习",
+    "vocabulary": "📚 生词",
+    "saveToVocabulary": "保存到生词本",
+    "rawModelResponse": "模型原始响应",
+    "notes": "说明",
+    "polished": "润色后",
+    "changes": "修改点",
+    "overallScore": "总评分",
+    "skillBreakdown": "分项评分",
+    "strengths": "💪 优势",
+    "improvements": "📈 可改进点",
+    "commonErrors": "常见错误",
+    "nextDrills": "下一步训练",
+    "scoreLabels": {
+      "grammar": "语法",
+      "vocabulary": "词汇",
+      "fluency": "流利度",
+      "coherence": "连贯性",
+      "pronunciation": "发音"
+    }
+  },
+  "memory": {
+    "title": "🧠 记忆管理",
+    "subtitle": "{name} 的长期背景事实",
+    "filtersTitle": "筛选",
+    "addFactTitle": "添加事实",
+    "type": "类型",
+    "content": "内容",
+    "contentPlaceholder": "例如：用户提到自己更喜欢深烘咖啡。",
+    "save": "保存记忆",
+    "clearAll": "清除当前角色记忆",
+    "clearConfirm": "清除 {name} 的全部有效记忆吗？这只影响当前角色，不会删除对话。",
+    "clearSuccess": "已清除该角色的 {count} 条记忆。",
+    "clearFailed": "清除角色记忆失败。",
+    "loading": "正在加载记忆事实...",
+    "empty": "这个分类下暂无记忆。",
+    "emptyHint": "开始对话，或手动添加一条事实来初始化角色记忆。",
+    "confidence": "置信度：{value}%",
+    "disableInjection": "停用 Prompt 注入",
+    "enableInjection": "启用 Prompt 注入",
+    "active": "启用",
+    "muted": "静默",
+    "forget": "遗忘这条记忆",
+    "filters": {
+      "all": "全部记忆",
+      "event": "事件",
+      "preference": "偏好",
+      "commitment": "承诺",
+      "trait": "特征",
+      "custom": "自定义"
+    },
+    "factTypes": {
+      "event": "事件",
+      "preference": "偏好",
+      "commitment": "承诺",
+      "trait": "特征",
+      "custom": "自定义"
+    }
+  },
+  "relationship": {
+    "title": "🎭 关系动态",
+    "loading": "正在同步关系上下文...",
+    "intimacy": "❤️ 亲密度",
+    "trust": "🤝 信任度",
+    "plotStage": "🎬 故事阶段",
+    "plotStagePlaceholder": "例如：初识 / 会话中段推进",
+    "learningGoal": "🎯 学习目标",
+    "learningGoalPlaceholder": "例如：练习简洁的面试回答",
+    "preferences": "📌 用户偏好",
+    "commitments": "🤝 承诺与约定",
+    "boundaries": "⚠️ 边界与禁区",
+    "addPreference": "添加偏好...",
+    "addCommitment": "添加约定...",
+    "addBoundary": "添加边界..."
   },
   "characterModal": {
     "createTitle": "新建角色",

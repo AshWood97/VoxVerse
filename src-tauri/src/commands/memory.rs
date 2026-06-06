@@ -110,6 +110,20 @@ pub async fn delete_memory_fact(db: State<'_, DbState>, fact_id: String) -> Resu
     memory::soft_delete_memory_fact(&db, &fact_id).map_err(|e| e.to_string())
 }
 
+/// Soft-delete all visible/non-deleted memory facts for a character.
+#[tauri::command]
+pub async fn clear_character_memory(
+    db: State<'_, DbState>,
+    character_id: String,
+) -> Result<usize, String> {
+    let character_id = character_id.trim();
+    if character_id.is_empty() {
+        return Err("Character id is required.".into());
+    }
+
+    memory::soft_delete_memory_facts_for_character(&db, character_id).map_err(|e| e.to_string())
+}
+
 /// Toggle whether a memory fact is injected into prompts.
 #[tauri::command]
 pub async fn toggle_memory_visibility(

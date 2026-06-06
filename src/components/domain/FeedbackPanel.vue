@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type {
   CorrectionResult,
   TranslationResult,
@@ -7,6 +8,8 @@ import type {
   FeedbackAction,
 } from '../../types/feedback';
 import DiffView from '../base/DiffView.vue';
+
+const { t } = useI18n();
 
 defineProps<{
   isOpen: boolean;
@@ -27,13 +30,17 @@ const emit = defineEmits<{
 }>();
 
 function getActionTitle(action: FeedbackAction | null): string {
-  if (!action) return '📊 Learning Report';
+  if (!action) return t('feedbackPanel.learningReport');
   const titles: Record<FeedbackAction, string> = {
-    correct: '✏️ Grammar Check',
-    translate: '🌐 Translation',
-    polish: '✨ Expression Polish',
+    correct: t('feedbackPanel.grammarCheck'),
+    translate: t('feedbackPanel.translation'),
+    polish: t('feedbackPanel.expressionPolish'),
   };
   return titles[action] || '';
+}
+
+function scoreLabel(key: string): string {
+  return t(`feedbackPanel.scoreLabels.${key}`);
 }
 </script>
 
@@ -48,7 +55,7 @@ function getActionTitle(action: FeedbackAction | null): string {
       <!-- Loading -->
       <div v-if="isLoading" class="fp-loading">
         <div class="fp-spinner"></div>
-        <p>Analyzing...</p>
+        <p>{{ t('feedbackPanel.analyzing') }}</p>
       </div>
 
       <!-- Error -->
@@ -59,30 +66,58 @@ function getActionTitle(action: FeedbackAction | null): string {
       <!-- Correction Result -->
       <div v-else-if="action === 'correct' && correctionResult" class="fp-body">
         <div class="fp-section">
-          <div class="fp-label">Original</div>
+          <div class="fp-label">{{ t('feedbackPanel.original') }}</div>
           <p class="fp-source-text">{{ sourceText }}</p>
         </div>
 
         <div v-if="correctionResult.hasErrors" class="fp-section">
-          <div class="fp-label">Correction</div>
+          <div class="fp-label">{{ t('feedbackPanel.correction') }}</div>
           <DiffView :original="sourceText" :corrected="correctionResult.corrected" />
         </div>
         <div v-else class="fp-success">
-          ✅ No errors found! Great job!
+          {{ t('feedbackPanel.noErrors') }}
         </div>
 
         <div v-if="correctionResult.explanation" class="fp-section">
-          <div class="fp-label">Explanation</div>
+          <div class="fp-label">{{ t('feedbackPanel.explanation') }}</div>
           <p class="fp-text">{{ correctionResult.explanation }}</p>
         </div>
 
         <div v-if="correctionResult.betterExpression" class="fp-section">
-          <div class="fp-label">💡 More Natural Expression</div>
+          <div class="fp-label">{{ t('feedbackPanel.betterExpression') }}</div>
           <p class="fp-highlight">{{ correctionResult.betterExpression }}</p>
         </div>
 
+        <div v-if="correctionResult.score || correctionResult.scoreBreakdown" class="fp-section">
+          <div class="fp-label">{{ t('feedbackPanel.quickScore') }}</div>
+          <div v-if="correctionResult.score" class="fp-score fp-score--compact">
+            <span class="fp-score-num">{{ correctionResult.score }}</span>
+            <span class="fp-score-max">/10</span>
+          </div>
+          <div v-if="correctionResult.scoreBreakdown" class="fp-score-grid">
+            <div
+              v-for="(score, key) in correctionResult.scoreBreakdown"
+              :key="key"
+              class="fp-score-chip"
+            >
+              <span class="fp-score-chip__label">{{ scoreLabel(key as string) }}</span>
+              <span class="fp-score-chip__value">{{ score }}/10</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="correctionResult.pronunciationNote" class="fp-section">
+          <div class="fp-label">{{ t('feedbackPanel.pronunciationNote') }}</div>
+          <p class="fp-text">{{ correctionResult.pronunciationNote }}</p>
+        </div>
+
+        <div v-if="correctionResult.nextPromptSuggestion" class="fp-section">
+          <div class="fp-label">{{ t('feedbackPanel.nextPromptSuggestion') }}</div>
+          <p class="fp-highlight">{{ correctionResult.nextPromptSuggestion }}</p>
+        </div>
+
         <div v-if="correctionResult.vocabulary?.length" class="fp-section">
-          <div class="fp-label">📚 Vocabulary</div>
+          <div class="fp-label">{{ t('feedbackPanel.vocabulary') }}</div>
           <div
             v-for="(v, i) in correctionResult.vocabulary"
             :key="i"
@@ -93,13 +128,13 @@ function getActionTitle(action: FeedbackAction | null): string {
             <button
               class="fp-vocab-save"
               @click="emit('saveWord', v.word, v.meaning, sourceText)"
-              title="Save to vocabulary"
+              :title="t('feedbackPanel.saveToVocabulary')"
             >⭐</button>
           </div>
         </div>
 
         <div v-if="rawFallback" class="fp-section fp-raw-fallback">
-          <div class="fp-label">Raw Model Response</div>
+          <div class="fp-label">{{ t('feedbackPanel.rawModelResponse') }}</div>
           <p class="fp-text">{{ rawFallback }}</p>
         </div>
       </div>
@@ -107,19 +142,19 @@ function getActionTitle(action: FeedbackAction | null): string {
       <!-- Translation Result -->
       <div v-else-if="action === 'translate' && translationResult" class="fp-body">
         <div class="fp-section">
-          <div class="fp-label">Original</div>
+          <div class="fp-label">{{ t('feedbackPanel.original') }}</div>
           <p class="fp-source-text">{{ sourceText }}</p>
         </div>
         <div class="fp-section">
-          <div class="fp-label">Translation</div>
+          <div class="fp-label">{{ t('feedbackPanel.translation') }}</div>
           <p class="fp-highlight">{{ translationResult.translation }}</p>
         </div>
         <div v-if="translationResult.notes" class="fp-section">
-          <div class="fp-label">Notes</div>
+          <div class="fp-label">{{ t('feedbackPanel.notes') }}</div>
           <p class="fp-text">{{ translationResult.notes }}</p>
         </div>
         <div v-if="rawFallback" class="fp-section fp-raw-fallback">
-          <div class="fp-label">Raw Model Response</div>
+          <div class="fp-label">{{ t('feedbackPanel.rawModelResponse') }}</div>
           <p class="fp-text">{{ rawFallback }}</p>
         </div>
       </div>
@@ -127,15 +162,15 @@ function getActionTitle(action: FeedbackAction | null): string {
       <!-- Polish Result -->
       <div v-else-if="action === 'polish' && polishResult" class="fp-body">
         <div class="fp-section">
-          <div class="fp-label">Original</div>
+          <div class="fp-label">{{ t('feedbackPanel.original') }}</div>
           <p class="fp-source-text">{{ sourceText }}</p>
         </div>
         <div class="fp-section">
-          <div class="fp-label">Polished</div>
+          <div class="fp-label">{{ t('feedbackPanel.polished') }}</div>
           <DiffView :original="sourceText" :corrected="polishResult.polished" />
         </div>
         <div v-if="polishResult.changes?.length" class="fp-section">
-          <div class="fp-label">Changes</div>
+          <div class="fp-label">{{ t('feedbackPanel.changes') }}</div>
           <div v-for="(c, i) in polishResult.changes" :key="i" class="fp-change-item">
             <div class="fp-change-before">{{ c.original }}</div>
             <div class="fp-change-arrow">→</div>
@@ -144,7 +179,7 @@ function getActionTitle(action: FeedbackAction | null): string {
           </div>
         </div>
         <div v-if="rawFallback" class="fp-section fp-raw-fallback">
-          <div class="fp-label">Raw Model Response</div>
+          <div class="fp-label">{{ t('feedbackPanel.rawModelResponse') }}</div>
           <p class="fp-text">{{ rawFallback }}</p>
         </div>
       </div>
@@ -152,39 +187,39 @@ function getActionTitle(action: FeedbackAction | null): string {
       <!-- Summary Result -->
       <div v-else-if="summaryResult" class="fp-body">
         <div class="fp-section">
-          <div class="fp-label">Overall Score</div>
+          <div class="fp-label">{{ t('feedbackPanel.overallScore') }}</div>
           <div class="fp-score">
             <span class="fp-score-num">{{ summaryResult.overallScore }}</span>
             <span class="fp-score-max">/10</span>
           </div>
         </div>
         <div v-if="summaryResult.scoreBreakdown" class="fp-section">
-          <div class="fp-label">Skill Breakdown</div>
+          <div class="fp-label">{{ t('feedbackPanel.skillBreakdown') }}</div>
           <div class="fp-score-grid">
             <div
               v-for="(score, key) in summaryResult.scoreBreakdown"
               :key="key"
               class="fp-score-chip"
             >
-              <span class="fp-score-chip__label">{{ key }}</span>
+              <span class="fp-score-chip__label">{{ scoreLabel(key as string) }}</span>
               <span class="fp-score-chip__value">{{ score }}/10</span>
             </div>
           </div>
         </div>
         <div v-if="summaryResult.strengths?.length" class="fp-section">
-          <div class="fp-label">💪 Strengths</div>
+          <div class="fp-label">{{ t('feedbackPanel.strengths') }}</div>
           <ul class="fp-list fp-list--good">
             <li v-for="(s, i) in summaryResult.strengths" :key="i">{{ s }}</li>
           </ul>
         </div>
         <div v-if="summaryResult.improvements?.length" class="fp-section">
-          <div class="fp-label">📈 Areas to Improve</div>
+          <div class="fp-label">{{ t('feedbackPanel.improvements') }}</div>
           <ul class="fp-list fp-list--warn">
             <li v-for="(s, i) in summaryResult.improvements" :key="i">{{ s }}</li>
           </ul>
         </div>
         <div v-if="summaryResult.commonErrors?.length" class="fp-section">
-          <div class="fp-label">Common Errors</div>
+          <div class="fp-label">{{ t('feedbackPanel.commonErrors') }}</div>
           <div v-for="(e, i) in summaryResult.commonErrors" :key="i" class="fp-change-item">
             <div class="fp-change-before">{{ e.error }}</div>
             <div class="fp-change-arrow">→</div>
@@ -192,13 +227,13 @@ function getActionTitle(action: FeedbackAction | null): string {
           </div>
         </div>
         <div v-if="summaryResult.nextDrills?.length" class="fp-section">
-          <div class="fp-label">Next Drills</div>
+          <div class="fp-label">{{ t('feedbackPanel.nextDrills') }}</div>
           <ul class="fp-list fp-list--drill">
             <li v-for="(drill, i) in summaryResult.nextDrills" :key="i">{{ drill }}</li>
           </ul>
         </div>
         <div v-if="rawFallback" class="fp-section fp-raw-fallback">
-          <div class="fp-label">Raw Model Response</div>
+          <div class="fp-label">{{ t('feedbackPanel.rawModelResponse') }}</div>
           <p class="fp-text">{{ rawFallback }}</p>
         </div>
       </div>
@@ -375,6 +410,9 @@ function getActionTitle(action: FeedbackAction | null): string {
   display: flex;
   align-items: baseline;
   gap: 2px;
+}
+.fp-score--compact .fp-score-num {
+  font-size: var(--font-size-2xl);
 }
 .fp-score-num {
   font-size: var(--font-size-3xl);

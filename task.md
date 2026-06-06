@@ -1,7 +1,7 @@
 # VoxVerse 路线图与状态总表
 
 > 最后更新: 2026-06-04
-> 当前产品阶段: V0.3 升级收口阶段
+> 当前产品阶段: v0.6.0 产品化收口阶段
 > 本文件是升级计划的唯一事实源
 
 ## 状态说明
@@ -10,6 +10,7 @@
 - `已实现，待稳定`: 主要代码已存在，但仍需构建修复、联调或端到端验证
 - `待人工验收`: 构建和自动化检查已恢复为绿色，但仍需要真实外部服务和桌面交互验证
 - `原型阶段`: 已经出现局部实现或 UI 原型，但还不应算作完整里程碑
+- `部分产品化`: 原型或切片已进入主流程，但仍有外部端点、人工验收或后续平台化边界
 - `计划中`: 还没有进入当前交付范围
 
 ## 里程碑总览
@@ -21,7 +22,7 @@
 | Lv.2 | 角色系统 | 已完成 | 角色 SQLite 持久化、创建编辑、导入导出、预设角色已落地 |
 | Lv.3 | 学习反馈系统 | 已完成 | 会话历史、反馈侧栏、场景、生词本、总结报告已经进入主流程 |
 | Lv.4 | 高级语音引擎 | 待人工验收 | Keyring、Whisper STT、Edge TTS、Ollama 兼容、运行诊断和语音回退已落地，仍需真实端点验收 |
-| Lv.5 | 完整平台化能力 | 原型阶段 | 统计、成就、角色发现、多语言等已出现局部实现，但不应视为里程碑完成 |
+| Lv.5 | 完整平台化能力 | 部分产品化 | 统计、成就、i18n、本地角色示例、结构化反馈元数据和记忆管理已进入 v0.6 收口；真实市场、自动更新、Realtime Voice 仍不在本阶段 |
 
 ## 已完成里程碑
 
@@ -55,9 +56,11 @@
 
 ## 当前交付重点
 
-### V0.3 升级收口
+### v0.6.0 产品化收口
 
-当前目标是按 `升级计划v0.3.md` 把现有产品化能力收束为 v0.3 baseline。范围包括构建绿灯、VoxVerse 命名统一、Practice Modes、结构化反馈评分、CLI/Agent 兼容、SQLite 性能索引、隐私控制和发布验证记录。
+当前目标是按 `升级计划v0.6.md` 把已有 Lv.5 原型和切片收束为可验证的产品化版本。范围包括结构化反馈元数据、角色记忆清除、角色学习目标、本地优先隐私说明、统计和成就 i18n、本地示例角色导入、版本号和发布文档统一。
+
+注意: v0.6.0 是工程发布版本号；本文件早期保留的 “V0.3 baseline” 语言描述的是产品路线图基线，不代表 npm/Cargo/Tauri 版本号。
 
 ### Lv.4 高级语音引擎
 
@@ -107,16 +110,24 @@ Native CLI & Agent Control 已新增为 Lv.5 后续升级类别。原生 CLI、J
 
 std::io agent server、受控 profile switch、受控 session start、受控 message append、结构化 session export、filtered audit inspection、agent 写工具 allowlist、网络闸门版 `send_message`、`retry-last` 恢复路径和模型化 `coach-report` 已落地：`pnpm --silent cli -- status --json`、`pnpm --silent cli -- config profiles list/switch --json`、`pnpm --silent cli -- character list --json`、`pnpm --silent cli -- session list/start/append-message/send-message/retry-last/coach-report/export --json`、`pnpm --silent cli -- audit list/export --json`、`pnpm --silent cli -- diagnostics run --json`、`pnpm --silent cli -- agent tools list --json`、`pnpm --silent cli -- agent serve --stdio --read-only`、`pnpm --silent cli -- agent serve --stdio --allow-writes --yes` 可读取或受控切换/创建/追加本地 SQLite 状态；`session export` 已返回 ordered messages、summary counts 和 Markdown transcript，`session coach-report` 可基于本地 export 调用 active profile 生成 Markdown 学习建议；`audit list/export` 支持按 operation、actor、result 和 target id 过滤；`--allow-tool <tool>` 可以收窄 agent 写模式暴露的工具，`send_message`、`retry_last_message` 和 `generate_session_coaching_report` 还必须显式 `--allow-network`。`config profiles switch`、`session start`、`session append-message`、agent `switch_provider_profile`、agent `start_practice_session`、agent `append_session_message`、网络 send-message 和 retry-last 都会写入 `voxverse-audit.jsonl`；旧 `speakmate-audit.jsonl` 仍可读取。coach-report 是网络只读路径，不写 DB 或 audit。Agent 只读工具已包含 `list_characters`、可过滤的 `list_audit_events`，以及 `--allow-network` 下的 `generate_session_coaching_report`，写模式可基于该角色目录创建练习会话、追加本地 user/assistant 消息，并在显式联网授权后调用 active profile 或重试最后一条 user 消息；本地 mock OpenAI-compatible send-message、retry-last 与 coaching report 已纳入自动烟测。
 
-## 原型阶段功能
+## v0.6 已产品化与仍属原型的 Lv.5 功能
 
-这些能力已经在代码里出现，但目前归类为 Lv.5 原型，而不是正式完成：
+这些能力已从原型进入 v0.6 产品化收口：
 
 - 学习统计面板
 - 成就提示和学习进度反馈
-- 角色发现/角色市场 UI
 - 中英文切换和 i18n 基础设施
+- 结构化反馈元数据
+- 当前角色记忆清除和角色学习目标
+- 本地示例角色发现/导入
 
-这些功能的处理原则：
+这些能力仍属于后续原型或暂缓范围：
+
+- 真实角色市场后端、远程分发、账号体系和下载统计
+- 自动更新、托盘、全局快捷键、浮动输入条
+- Realtime/WebRTC/LiveKit 连续语音
+
+Lv.5 功能的处理原则：
 
 1. 如果功能能通过构建并完成端到端验证，就提升到正式里程碑
 2. 如果只是局部 UI 或半成品逻辑，就继续保留在原型阶段，不写成“已完成”
@@ -131,11 +142,11 @@ std::io agent server、受控 profile switch、受控 session start、受控 mes
 
 ## 近期执行顺序
 
-1. 运行 `pnpm validate:v0.1`，必要时运行 `pnpm validate:v0.1:full` 生成 V0.1 自动化基线
-2. 按 `v0.1-gap-closure-plan.md` 的查缺补漏清单逐项修复
+1. 按 `升级计划v0.6.md` 完成产品化收口和文档统一
+2. 运行 `pnpm build`、`cargo test --manifest-path src-tauri/Cargo.toml`、`pnpm validate:lv4`
 3. 按 `lv4-validation-checklist.md` 记录真实端点和桌面交互结论
-4. 只修 V0.1 清单内问题，不再新增功能
-5. 人工测试完成后再决定是否进入 V0.2
+4. 对未完成人工验收的语音/provider 能力保持 `待人工验收`
+5. v0.6 发布后再评估自动更新、真实角色市场和 Realtime Voice
 
 ## 长期 Backlog
 

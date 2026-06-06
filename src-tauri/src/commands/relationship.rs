@@ -14,6 +14,8 @@ pub struct RelationshipInfo {
     pub intimacy_level: i64,
     pub trust_level: i64,
     pub plot_stage: Option<String>,
+    #[serde(rename = "learningGoal")]
+    pub learning_goal: Option<String>,
     pub user_preferences: Option<serde_json::Value>,
     pub boundaries: Option<serde_json::Value>,
     pub commitments: Option<serde_json::Value>,
@@ -25,6 +27,8 @@ pub struct RelationshipUpdate {
     pub intimacy_level: Option<i64>,
     pub trust_level: Option<i64>,
     pub plot_stage: Option<String>,
+    #[serde(rename = "learningGoal")]
+    pub learning_goal: Option<String>,
     pub user_preferences: Option<serde_json::Value>,
     pub boundaries: Option<serde_json::Value>,
     pub commitments: Option<serde_json::Value>,
@@ -61,6 +65,10 @@ pub async fn update_relationship_state(
     if let Some(stage) = updates.plot_stage {
         state.plot_stage = if stage.is_empty() { None } else { Some(stage) };
     }
+    if let Some(goal) = updates.learning_goal {
+        let goal = goal.trim().to_string();
+        state.learning_goal = if goal.is_empty() { None } else { Some(goal) };
+    }
     if let Some(prefs) = updates.user_preferences {
         state.user_preferences = Some(serde_json::to_string(&prefs).unwrap_or_default());
     }
@@ -84,6 +92,7 @@ fn record_to_info(state: memory::RelationshipStateRecord) -> RelationshipInfo {
         intimacy_level: state.intimacy_level,
         trust_level: state.trust_level,
         plot_stage: state.plot_stage,
+        learning_goal: state.learning_goal,
         user_preferences: state
             .user_preferences
             .and_then(|s| serde_json::from_str(&s).ok()),

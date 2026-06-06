@@ -80,6 +80,13 @@ pub struct SaveCorrectionInput {
     pub explanation: Option<String>,
     #[serde(rename = "betterExpression")]
     pub better_expression: Option<String>,
+    pub score: Option<f64>,
+    #[serde(rename = "scoreBreakdown")]
+    pub score_breakdown: Option<serde_json::Value>,
+    #[serde(rename = "pronunciationNote")]
+    pub pronunciation_note: Option<String>,
+    #[serde(rename = "nextPromptSuggestion")]
+    pub next_prompt_suggestion: Option<String>,
     #[serde(rename = "createdAt")]
     pub created_at: Option<String>,
 }
@@ -145,11 +152,25 @@ fn persist_correction(
         .better_expression
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty());
+    let score = correction.score.map(|value| value.clamp(0.0, 10.0));
+    let score_breakdown_json = correction
+        .score_breakdown
+        .map(|value| serde_json::to_string(&value).unwrap_or_default())
+        .filter(|value| !value.is_empty() && value != "null");
+    let pronunciation_note = correction
+        .pronunciation_note
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty());
+    let next_prompt_suggestion = correction
+        .next_prompt_suggestion
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty());
 
     conn.execute(
         "INSERT INTO corrections
-            (id, session_id, original_text, corrected_text, explanation, better_expression, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            (id, session_id, original_text, corrected_text, explanation, better_expression,
+             score, score_breakdown_json, pronunciation_note, next_prompt_suggestion, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
         params![
             correction_id,
             session_id,
@@ -157,6 +178,10 @@ fn persist_correction(
             corrected_text,
             explanation,
             better_expression,
+            score,
+            score_breakdown_json,
+            pronunciation_note,
+            next_prompt_suggestion,
             created_at,
         ],
     )?;
@@ -265,6 +290,10 @@ mod tests {
                 corrected_text TEXT NOT NULL,
                 explanation TEXT,
                 better_expression TEXT,
+                score REAL,
+                score_breakdown_json TEXT,
+                pronunciation_note TEXT,
+                next_prompt_suggestion TEXT,
                 created_at TEXT NOT NULL
              );",
         )?;
@@ -285,6 +314,10 @@ mod tests {
                     corrected_text: "Corrected sentence.".into(),
                     explanation: Some(" Subject verb agreement. ".into()),
                     better_expression: Some("A more natural expression.".into()),
+                    score: Some(8.5),
+                    score_breakdown: Some(serde_json::json!({ "grammar": 8, "fluency": 9 })),
+                    pronunciation_note: Some("Watch the short i sound.".into()),
+                    next_prompt_suggestion: Some("Try describing your breakfast.".into()),
                     created_at: Some("2026-05-16T00:00:00Z".into()),
                 },
             )?;
@@ -307,6 +340,18 @@ mod tests {
             })?;
         assert_eq!(unique_ids, 2);
 
+        let metadata: (f64, String, String, String) = conn.query_row(
+            "SELECT score, score_breakdown_json, pronunciation_note, next_prompt_suggestion
+             FROM corrections
+             WHERE original_text = 'I has apple'",
+            [],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+        )?;
+        assert_eq!(metadata.0, 8.5);
+        assert!(metadata.1.contains("grammar"));
+        assert_eq!(metadata.2, "Watch the short i sound.");
+        assert_eq!(metadata.3, "Try describing your breakfast.");
+
         Ok(())
     }
 
@@ -321,6 +366,10 @@ mod tests {
                 corrected_text: "I have an apple.".into(),
                 explanation: None,
                 better_expression: None,
+                score: None,
+                score_breakdown: None,
+                pronunciation_note: None,
+                next_prompt_suggestion: None,
                 created_at: None,
             },
         );

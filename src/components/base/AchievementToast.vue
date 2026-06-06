@@ -17,8 +17,8 @@ const { t } = useI18n();
       </div>
       <div class="toast-content">
         <span class="toast-title">{{ t('achievements.unlocked') }}</span>
-        <h4 class="achievement-name">{{ achievement.title }}</h4>
-        <p class="achievement-desc">{{ achievement.description }}</p>
+        <h4 class="achievement-name">{{ t(achievement.titleKey) }}</h4>
+        <p class="achievement-desc">{{ t(achievement.descriptionKey) }}</p>
       </div>
     </div>
   </Transition>

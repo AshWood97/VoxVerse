@@ -75,7 +75,10 @@ function handleOverlayClick(e: MouseEvent) {
       <div class="modal-header">
         <div class="header-title">
           <span class="icon">🌟</span>
-          <h2>{{ t('market.title') }}</h2>
+          <div>
+            <h2>{{ t('market.title') }}</h2>
+            <p class="header-subtitle">{{ t('market.subtitle') }}</p>
+          </div>
         </div>
         <button class="close-btn" @click="emit('close')">✕</button>
       </div>
@@ -113,7 +116,7 @@ function handleOverlayClick(e: MouseEvent) {
             </div>
             
             <div class="card-footer">
-              <span class="downloads">⬇️ {{ char.downloads?.toLocaleString() }}</span>
+              <span class="sample-badge">{{ t('market.localSample') }}</span>
               
               <button 
                 class="download-btn"
@@ -186,6 +189,12 @@ function handleOverlayClick(e: MouseEvent) {
   font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-primary);
+}
+
+.header-subtitle {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  margin-top: 2px;
 }
 
 .close-btn {
@@ -317,7 +326,7 @@ function handleOverlayClick(e: MouseEvent) {
   border-top: 1px solid var(--border-subtle);
 }
 
-.downloads {
+.sample-badge {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }

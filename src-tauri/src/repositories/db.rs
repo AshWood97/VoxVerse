@@ -170,11 +170,19 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
             corrected_text TEXT NOT NULL,
             explanation TEXT,
             better_expression TEXT,
+            score REAL,
+            score_breakdown_json TEXT,
+            pronunciation_note TEXT,
+            next_prompt_suggestion TEXT,
             created_at TEXT NOT NULL,
             FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
         )",
         [],
     )?;
+    ensure_column(&conn, "corrections", "score", "REAL")?;
+    ensure_column(&conn, "corrections", "score_breakdown_json", "TEXT")?;
+    ensure_column(&conn, "corrections", "pronunciation_note", "TEXT")?;
+    ensure_column(&conn, "corrections", "next_prompt_suggestion", "TEXT")?;
 
     // ── Lv.3: Scenarios ──
     conn.execute(
@@ -201,6 +209,7 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
             intimacy_level INTEGER NOT NULL DEFAULT 0,
             trust_level INTEGER NOT NULL DEFAULT 0,
             plot_stage TEXT,
+            learning_goal TEXT,
             user_preferences TEXT,
             boundaries TEXT,
             commitments TEXT,
@@ -209,6 +218,7 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
         )",
         [],
     )?;
+    ensure_column(&conn, "relationship_state", "learning_goal", "TEXT")?;
 
     // ── V1: Memory facts ──
     conn.execute(
@@ -582,6 +592,66 @@ mod tests {
         )?;
         assert_eq!(count, 6);
 
+        Ok(())
+    }
+
+    #[test]
+    fn migrates_corrections_with_structured_feedback_metadata() -> Result<(), AppError> {
+        let conn = Connection::open_in_memory()?;
+        conn.execute(
+            "CREATE TABLE corrections (
+                id TEXT PRIMARY KEY,
+                session_id TEXT,
+                original_text TEXT NOT NULL,
+                corrected_text TEXT NOT NULL,
+                explanation TEXT,
+                better_expression TEXT,
+                created_at TEXT NOT NULL
+            )",
+            [],
+        )?;
+
+        ensure_column(&conn, "corrections", "score", "REAL")?;
+        ensure_column(&conn, "corrections", "score_breakdown_json", "TEXT")?;
+        ensure_column(&conn, "corrections", "pronunciation_note", "TEXT")?;
+        ensure_column(&conn, "corrections", "next_prompt_suggestion", "TEXT")?;
+
+        assert!(column_exists(&conn, "corrections", "score")?);
+        assert!(column_exists(&conn, "corrections", "score_breakdown_json")?);
+        assert!(column_exists(&conn, "corrections", "pronunciation_note")?);
+        assert!(column_exists(&conn, "corrections", "next_prompt_suggestion")?);
+
+        // Idempotent on already-migrated databases.
+        ensure_column(&conn, "corrections", "score", "REAL")?;
+        ensure_column(&conn, "corrections", "score_breakdown_json", "TEXT")?;
+        ensure_column(&conn, "corrections", "pronunciation_note", "TEXT")?;
+        ensure_column(&conn, "corrections", "next_prompt_suggestion", "TEXT")?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn migrates_relationship_state_with_learning_goal() -> Result<(), AppError> {
+        let conn = Connection::open_in_memory()?;
+        conn.execute(
+            "CREATE TABLE relationship_state (
+                id TEXT PRIMARY KEY,
+                character_id TEXT NOT NULL UNIQUE,
+                intimacy_level INTEGER NOT NULL DEFAULT 0,
+                trust_level INTEGER NOT NULL DEFAULT 0,
+                plot_stage TEXT,
+                user_preferences TEXT,
+                boundaries TEXT,
+                commitments TEXT,
+                updated_at TEXT NOT NULL
+            )",
+            [],
+        )?;
+
+        ensure_column(&conn, "relationship_state", "learning_goal", "TEXT")?;
+        assert!(column_exists(&conn, "relationship_state", "learning_goal")?);
+
+        ensure_column(&conn, "relationship_state", "learning_goal", "TEXT")?;
         Ok(())
     }
 }

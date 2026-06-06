@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import type { MemoryFact } from '../types/memory';
-import { getMemoryFacts, createMemoryFact, deleteMemoryFact, toggleMemoryVisibility } from '../services/tauri/memory';
+import { getMemoryFacts, createMemoryFact, deleteMemoryFact, clearCharacterMemory, toggleMemoryVisibility } from '../services/tauri/memory';
 import { logError } from '../utils/errors';
 
 export function useMemory() {
@@ -61,12 +61,26 @@ export function useMemory() {
     }
   }
 
+  async function clearFacts(characterId: string) {
+    try {
+      const deletedCount = await clearCharacterMemory(characterId);
+      if (deletedCount > 0) {
+        facts.value = [];
+      }
+      return deletedCount;
+    } catch (error) {
+      logError('Failed to clear character memory', error);
+      throw error;
+    }
+  }
+
   return {
     facts,
     isLoading,
     loadMemoryFacts,
     addFact,
     removeFact,
+    clearFacts,
     toggleVisibility,
   };
 }

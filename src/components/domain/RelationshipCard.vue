@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRelationship } from '../../composables/useRelationship';
 
 const props = defineProps<{
@@ -12,6 +13,7 @@ const emit = defineEmits<{
 }>();
 
 const { relationshipState, isLoading, loadRelationshipState, modifyRelationshipState } = useRelationship();
+const { t } = useI18n();
 
 const newPref = ref('');
 const newBoundary = ref('');
@@ -50,6 +52,15 @@ async function updatePlotStage(event: Event) {
   const stage = (event.target as HTMLInputElement).value;
   try {
     await modifyRelationshipState(props.characterId, { plot_stage: stage });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function updateLearningGoal(event: Event) {
+  const learningGoal = (event.target as HTMLInputElement).value;
+  try {
+    await modifyRelationshipState(props.characterId, { learningGoal });
   } catch (err) {
     console.error(err);
   }
@@ -108,13 +119,13 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
 <template>
   <div class="relationship-card">
     <div class="card-header">
-      <h3>🎭 Relationship Dynamics</h3>
+      <h3>{{ t('relationship.title') }}</h3>
       <button class="close-btn" @click="emit('close')">✕</button>
     </div>
     
     <div v-if="isLoading && !relationshipState" class="loader-container">
       <span class="loader"></span>
-      <p>Synchronizing bond analytics...</p>
+      <p>{{ t('relationship.loading') }}</p>
     </div>
 
     <div v-else-if="relationshipState" class="card-body">
@@ -123,7 +134,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
         <!-- Intimacy -->
         <div class="stat-row">
           <div class="stat-info">
-            <span class="stat-label">❤️ Intimacy</span>
+            <span class="stat-label">{{ t('relationship.intimacy') }}</span>
             <span class="stat-value">{{ relationshipState.intimacy_level }}/100</span>
           </div>
           <div class="gauge-container">
@@ -138,7 +149,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
         <!-- Trust -->
         <div class="stat-row">
           <div class="stat-info">
-            <span class="stat-label">🤝 Trust</span>
+            <span class="stat-label">{{ t('relationship.trust') }}</span>
             <span class="stat-value">{{ relationshipState.trust_level }}/100</span>
           </div>
           <div class="gauge-container">
@@ -153,12 +164,23 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
 
       <!-- Plot Stage -->
       <div class="plot-stage-section">
-        <label class="section-label">🎬 Story Phase / Plot Stage</label>
+        <label class="section-label">{{ t('relationship.plotStage') }}</label>
         <input
           type="text"
           :value="relationshipState.plot_stage || ''"
           @change="updatePlotStage"
-          placeholder="e.g. Acquaintances / Mid-Session Drift"
+          :placeholder="t('relationship.plotStagePlaceholder')"
+          class="stage-input"
+        />
+      </div>
+
+      <div class="plot-stage-section">
+        <label class="section-label">{{ t('relationship.learningGoal') }}</label>
+        <input
+          type="text"
+          :value="relationshipState.learningGoal || ''"
+          @change="updateLearningGoal"
+          :placeholder="t('relationship.learningGoalPlaceholder')"
           class="stage-input"
         />
       </div>
@@ -167,7 +189,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
       <div class="meta-section">
         <!-- User Preferences -->
         <div class="meta-subsection">
-          <span class="subsection-label">📌 User Preferences</span>
+          <span class="subsection-label">{{ t('relationship.preferences') }}</span>
           <div class="meta-tags">
             <div
               v-for="(val, itemKey) in (relationshipState.user_preferences || {})"
@@ -182,7 +204,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
             <input
               type="text"
               v-model="newPref"
-              placeholder="Add preference..."
+              :placeholder="t('relationship.addPreference')"
               @keyup.enter="addMetadataItem('preferences', newPref)"
               class="inline-input"
             />
@@ -192,7 +214,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
 
         <!-- Commitments -->
         <div class="meta-subsection">
-          <span class="subsection-label">🤝 Commitments & Agreements</span>
+          <span class="subsection-label">{{ t('relationship.commitments') }}</span>
           <div class="meta-tags">
             <div
               v-for="(val, itemKey) in (relationshipState.commitments || {})"
@@ -207,7 +229,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
             <input
               type="text"
               v-model="newCommitment"
-              placeholder="Add agreement..."
+              :placeholder="t('relationship.addCommitment')"
               @keyup.enter="addMetadataItem('commitments', newCommitment)"
               class="inline-input"
             />
@@ -217,7 +239,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
 
         <!-- Boundaries -->
         <div class="meta-subsection">
-          <span class="subsection-label">⚠️ Boundaries & Red Lines</span>
+          <span class="subsection-label">{{ t('relationship.boundaries') }}</span>
           <div class="meta-tags">
             <div
               v-for="(val, itemKey) in (relationshipState.boundaries || {})"
@@ -232,7 +254,7 @@ async function deleteMetadataItem(key: 'preferences' | 'boundaries' | 'commitmen
             <input
               type="text"
               v-model="newBoundary"
-              placeholder="Add boundary..."
+              :placeholder="t('relationship.addBoundary')"
               @keyup.enter="addMetadataItem('boundaries', newBoundary)"
               class="inline-input"
             />
